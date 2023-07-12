@@ -7,6 +7,9 @@ use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\LogController;
+use App\Models\Log;
+use Illuminate\Support\Facades\DB;
 
 class LoginController extends Controller
 {
@@ -55,9 +58,18 @@ class LoginController extends Controller
         ]);
 
         if (auth()->attempt(array('username' => $input['username'], 'password' => $input['password']))) {
-            if (auth()->user()->type == 'admin') {
+
+            $logQuery = new LogController; // store the LogController
+
+            list($user_id, $user_type) = $logQuery->startLog(); // store the value from the returned parameter of startLog function
+
+            $activity = $user_type . " logged in"; // store the activity where user is logged on
+
+            $logQuery->endLog($user_id, $user_type, $activity); // pass the value to the endLog parameter that will create a log
+
+            if ($user_type == 'admin') {
                 return redirect()->route('dashboard.admin');
-            } else if (auth()->user()->type == 'cashier') {
+            } else if ($user_type == 'cashier') {
                 return redirect()->route('dashboard.cashier');
             }
         } else {
@@ -70,11 +82,21 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
+        $logQuery = new LogController; // store the LogController
+
+        list($user_id, $user_type) = $logQuery->startLog(); // store the value from the returned parameter of startLog function
+
+        $activity = $user_type . " logged out"; // store the activity where user is logged out
+
+        $logQuery->endLog($user_id, $user_type, $activity); // pass the value to the endLog parameter that will create a log
+
+
         Auth::logout(); //logout the authenticated user
 
         $request->session()->invalidate(); //remove all the data stored in the session
 
         $request->session()->regenerateToken(); //regenerate token for the next session
+
 
         return redirect('/login'); //redirect the user to login
     }
