@@ -13,7 +13,7 @@
     </div>
     <div class="container-fluid m-0 p-0">
         <div class="container-fluid m-0 p-0">
-            <h3 class="m-0 p-2 shadow" style="letter-spacing: 2px;">Dashboard</h3>
+            <h3 class="m-0 p-2 shadow" style="letter-spacing: 2px;">Title Content</h3>
         </div>
         <!-- content here -->
     </div>

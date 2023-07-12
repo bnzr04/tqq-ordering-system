@@ -36,7 +36,7 @@
             <li><a href="#">Orders</a></li>
             <li><a href="#">Inventory</a></li>
             <li><a href="#">Sales</a></li>
-            <li><a href="">Logs</a></li>
+            <li><a href="{{ route('logs.admin') }}">Logs</a></li>
             @endif
 
             @if(auth()->user()->type == 'cashier')

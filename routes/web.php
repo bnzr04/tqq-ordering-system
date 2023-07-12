@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LogController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -31,6 +32,8 @@ ADMIN ROUTES
 */ //////////
 Route::prefix('admin')->middleware(['auth', 'user-access:admin'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'adminDashboard'])->name('dashboard.admin');
+
+    Route::get('/logs', [LogController::class, 'index'])->name('logs.admin');
 });
 
 /*///////////

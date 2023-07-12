@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\DB;
 
 class LogController extends Controller
 {
+    public function index()
+    {
+        return view('admin.logs.log');
+    }
+
     public function startLog()
     {
         DB::getQueryLog(); // enable the query log
