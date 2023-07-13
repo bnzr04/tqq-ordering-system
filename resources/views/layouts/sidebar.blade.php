@@ -33,7 +33,7 @@
             @if(auth()->user()->type == 'admin')
             <li><a href="{{ route('dashboard.admin') }}">Dashboard</a></li>
             <li><a href="#">Users</a></li>
-            <li><a href="#">Orders</a></li>
+            <li><a href="{{ route('orders.admin') }}">Orders</a></li>
             <li><a href="#">Inventory</a></li>
             <li><a href="#">Sales</a></li>
             <li><a href="{{ route('logs.admin') }}">Logs</a></li>
@@ -43,6 +43,7 @@
             <li><a href="{{ route('dashboard.cashier') }}">Dashboard</a></li>
             <li><a href="#">Users</a></li>
             <li><a href="#">Orders</a></li>
+            <li><a href="#">Kitchen</a></li>
             <li><a href="#">Inventory</a></li>
             <li><a href="#">Sales</a></li>
             @endif

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LogController;
+use App\Http\Controllers\OrderController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -31,9 +32,16 @@ Route::middleware('guest')->group(function () {
 ADMIN ROUTES
 */ //////////
 Route::prefix('admin')->middleware(['auth', 'user-access:admin'])->group(function () {
+    //dashboard routes
     Route::get('/dashboard', [DashboardController::class, 'adminDashboard'])->name('dashboard.admin');
 
+    //orders routes
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.admin');
+    Route::get('/make-order', [OrderController::class, 'makeOrder'])->name('make-order.admin');
+
+    //logs routes
     Route::get('/logs', [LogController::class, 'index'])->name('logs.admin');
+    Route::get('/view-logs', [LogController::class, 'view'])->name('logs-view.admin');
 });
 
 /*///////////
