@@ -65,6 +65,9 @@ class LoginController extends Controller
 
             $activity = $user_type . " logged in"; // store the activity where user is logged on
 
+            // Get the SQL query being executed
+            $sql = DB::getQueryLog();
+
             $logQuery->endLog($user_id, $user_type, $activity); // pass the value to the endLog parameter that will create a log
 
             if ($user_type == 'admin') {
@@ -87,6 +90,9 @@ class LoginController extends Controller
         list($user_id, $user_type) = $logQuery->startLog(); // store the value from the returned parameter of startLog function
 
         $activity = $user_type . " logged out"; // store the activity where user is logged out
+
+        // Get the SQL query being executed
+        $sql = DB::getQueryLog();
 
         $logQuery->endLog($user_id, $user_type, $activity); // pass the value to the endLog parameter that will create a log
 

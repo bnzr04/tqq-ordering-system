@@ -54,7 +54,7 @@ class LogController extends Controller
 
     public function startLog()
     {
-        DB::getQueryLog(); // enable the query log
+        DB::enableQueryLog(); // enable the query log
 
         $user = Auth::user(); // store the user information
         $user_id = $user->id; // store the user id
@@ -65,7 +65,6 @@ class LogController extends Controller
 
     public function endLog($user_id, $user_type, $activity) // get the parameters value
     {
-
         // Get the SQL query being executed
         $sql = DB::getQueryLog();
 

@@ -18,9 +18,9 @@ return new class extends Migration
             $table->integer('table_number');
             $table->unsignedBigInteger('cashier_id');
             $table->string('order_type'); //dine-in or take-out
-            $table->decimal('total_amount', 10, 2);
+            $table->decimal('total_amount', 10, 2)->default(0);
             $table->string('payment_status'); //paid or unpaid
-            $table->string('order_status'); //preparing or complete
+            $table->string('order_status'); //in-queue / preparing / now-serving / completed
             $table->timestamp('order_time');
 
             //cashier_id is foreign key and a primary key of user id
