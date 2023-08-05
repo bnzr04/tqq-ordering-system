@@ -9,7 +9,9 @@ class Order extends Model
 {
     use HasFactory;
 
+    protected $primaryKey = 'order_id';
+
     public $timestamps = false;
 
-    protected $fillable = [];
+    protected $fillable = ['order_status'];
 }

@@ -5,6 +5,11 @@
         display: grid;
         grid: 100vh / 200px auto;
     }
+
+    .content {
+        position: absolute;
+        height: calc(100% - 46px);
+    }
 </style>
 <div class="container-fluid p-0 m-0 grid-container">
     <div class="container-fluid m-0 p-0">
@@ -14,7 +19,9 @@
         <div class="container-fluid m-0 p-0">
             <h3 class="m-0 p-2 shadow" style="letter-spacing: 2px;">Kitchen</h3>
         </div>
-        <!-- content here -->
+        <div class="container-fluid m-0 p-0 border content">
+            <!-- content here -->
+        </div>
     </div>
 </div>
 @endsection

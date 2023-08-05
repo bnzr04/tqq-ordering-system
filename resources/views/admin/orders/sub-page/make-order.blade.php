@@ -26,11 +26,12 @@
 
     #orders-container {
         grid-area: orders;
-
+        height: 50vh;
     }
 
     #control-container {
         grid-area: control;
+        height: 40vh;
     }
 
     #sub-menu {
@@ -104,10 +105,10 @@
                     </div>
                     <div class="container-fluid m-0 border m-0 p-0" id="menu_result">
                         <table class="table table-striped table-dark">
-                            <thead id="menu_result_head">
+                            <thead id="menu_result_head" style="letter-spacing: 3px;">
 
                             </thead>
-                            <tbody id="menu_result_table">
+                            <tbody id="menu_result_table" class="menu_result_table">
 
                             </tbody>
                         </table>
@@ -117,96 +118,9 @@
 
             <!-- Order Container -->
             <div class="container-fluid m-0 p-2 border shadow rounded-3" id="orders-container">
-                <div class="container-fluid p-2 m-0 border border-secondary" style="min-width:450px;min-height:100%;
-        overflow-y: auto;">
-                    <div class="container-fluid m-0 p-1 border" style="display: flex;align-items:center;">
-                        <p class="m-0">Sweet & Sour Pork / RT / P 130.00</p>
-                        <div class="m-0 mx-1 p-0 border" id="count-container">
-                            <button>-</button>
-                            <span>1000000000</span>
-                            <button>+</button>
-                        </div>
-                        <div class="m-0 p-0 border">
-                            <button>X</button>
-                        </div>
-                    </div>
-                    <div class="container-fluid m-0 p-1 border" style="display: flex;align-items:center;">
-                        <p class="m-0">Sweet & Sour Pork / RT / P 130.00</p>
-                        <div class="m-0 mx-1 p-0 border" id="count-container">
-                            <button>-</button>
-                            <span>1000000000</span>
-                            <button>+</button>
-                        </div>
-                        <div class="m-0 p-0 border">
-                            <button>X</button>
-                        </div>
-                    </div>
-                    <div class="container-fluid m-0 p-1 border" style="display: flex;align-items:center;">
-                        <p class="m-0">Sweet & Sour Pork / RT / P 130.00</p>
-                        <div class="m-0 mx-1 p-0 border" id="count-container">
-                            <button>-</button>
-                            <span>1000000000</span>
-                            <button>+</button>
-                        </div>
-                        <div class="m-0 p-0 border">
-                            <button>X</button>
-                        </div>
-                    </div>
-                    <div class="container-fluid m-0 p-1 border" style="display: flex;align-items:center;">
-                        <p class="m-0">Sweet & Sour Pork / RT / P 130.00</p>
-                        <div class="m-0 mx-1 p-0 border" id="count-container">
-                            <button>-</button>
-                            <span>1000000000</span>
-                            <button>+</button>
-                        </div>
-                        <div class="m-0 p-0 border">
-                            <button>X</button>
-                        </div>
-                    </div>
-                    <div class="container-fluid m-0 p-1 border" style="display: flex;align-items:center;">
-                        <p class="m-0">Sweet & Sour Pork / RT / P 130.00</p>
-                        <div class="m-0 mx-1 p-0 border" id="count-container">
-                            <button>-</button>
-                            <span>1000000000</span>
-                            <button>+</button>
-                        </div>
-                        <div class="m-0 p-0 border">
-                            <button>X</button>
-                        </div>
-                    </div>
-                    <div class="container-fluid m-0 p-1 border" style="display: flex;align-items:center;">
-                        <p class="m-0">Sweet & Sour Pork / RT / P 130.00</p>
-                        <div class="m-0 mx-1 p-0 border" id="count-container">
-                            <button>-</button>
-                            <span>1000000000</span>
-                            <button>+</button>
-                        </div>
-                        <div class="m-0 p-0 border">
-                            <button>X</button>
-                        </div>
-                    </div>
-                    <div class="container-fluid m-0 p-1 border" style="display: flex;align-items:center;">
-                        <p class="m-0">Sweet & Sour Pork / RT / P 130.00</p>
-                        <div class="m-0 mx-1 p-0 border" id="count-container">
-                            <button>-</button>
-                            <span>1000000000</span>
-                            <button>+</button>
-                        </div>
-                        <div class="m-0 p-0 border">
-                            <button>X</button>
-                        </div>
-                    </div>
-                    <div class="container-fluid m-0 p-1 border" style="display: flex;align-items:center;">
-                        <p class="m-0">Sweet & Sour Pork / RT / P 130.00</p>
-                        <div class="m-0 mx-1 p-0 border" id="count-container">
-                            <button>-</button>
-                            <span>1000000000</span>
-                            <button>+</button>
-                        </div>
-                        <div class="m-0 p-0 border">
-                            <button>X</button>
-                        </div>
-                    </div>
+                <div class="container-fluid p-2 m-0 border border-secondary" style="min-width:450px;height:100%;
+        overflow-y: auto;" id="orders-box">
+
                 </div>
             </div>
 
@@ -215,7 +129,7 @@
                 <div class="container-fluid p-2 m-0 border" id="sub-menu">
                     <div class="container-fluid m-0 p-0" style="display: flex;">
                         <div class="container-fluid m-0 p-0">
-                            <p class="m-0 p-0">Order ID: <span id="order-id" class="fw-bold">{{ $orderId->order_id + 1 }}</span></p>
+                            <p class="m-0 p-0">Order ID: <span id="order-id" class="fw-bold"></span></p>
                             <p class="m-0 p-0">Table #: <input type="number" min="1" style="max-width:60px;border-radius:4px;" id="table-number-input"></p>
                         </div>
                         <div class="container-fluid m-0 p-0" id='radio-container'>
@@ -233,8 +147,8 @@
                             </div>
                         </div>
                     </div>
-                    <h4 class="m-0 p-0">Total:</h4>
-                    <div class="container-fluid m-0 my-2 p-1 bg-white" style="letter-spacing: 2px;">P <b>0.00</b></div>
+                    <h4 class="m-0 p-0" style="letter-spacing: 3px;">Total:</h4>
+                    <div class="container-fluid m-0 my-2 p-1 bg-white" style="letter-spacing: 2px;">P <b id="total_amount_input">0.00</b></div>
                     <button class="btn btn-dark m-1" id="make-order-btn">Make Order</button>
                     <button class="btn btn-dark m-1" id="new-order-btn" style="display: none;">Take New Order</button>
                 </div>
@@ -249,56 +163,101 @@
         const newOrderBtn = $("#new-order-btn");
         const orderId = $("#order-id");
         const tableNumberInput = $("#table-number-input");
+        const ordersBox = $("#orders-box");
 
-        newOrderBtn.on('click', function() {
+        const menuResultTable = $('#menu_result_table');
+        const menuResultHead = $("#menu_result_head");
+
+        var totalBill = 0;
+
+        var orderIdValue = 0;
+
+        function showNextOrderId() { //this function will show the next order id
+            $.ajax({
+                type: "GET",
+                url: "{{ route('next-order-id.admin') }}",
+                success: function(data) {
+                    orderIdValue = data;
+
+                    if (data) {
+                        orderId.text(data);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.log(xhr.responseText);
+                }
+            });
+        }
+
+        showNextOrderId();
+
+        newOrderBtn.on('click', function() { //if the new-order-btn is clicked the order page will reload
             location.reload();
         });
 
         var isSubmitting = false; // Flag variable to track form submission
 
+        //this will execute if the make-order-btn is clicked
         $("#make-order-btn").on("click", function() {
-            var tableNumberValue = tableNumberInput.val();
+            var tableNumberValue = tableNumberInput.val(); //get the table number input value
 
-            if (tableNumberValue.length > 0) {
-                if (confirm('Do you want to send the order to kitchen?')) {
-                    if (isSubmitting) {
-                        return; // If form is already being submitted, ignore subsequent clicks
-                    }
+            var total = $('#total_amount_input').text();
 
-                    var orderType = $('input[name="order_type"]:checked').val();
-                    var paymentStatus = $('input[name="payment_status"]:checked').val();
-                    var tableNumber = $('#table-number-input').val();
-                    // console.log(orderType);
-                    // console.log(paymentStatus);
+            // console.log(totalBill);
 
-                    isSubmitting = true;
+            console.log(orderedItems)
 
-                    $.ajax({
-                        type: 'POST',
-                        url: "{{ route('submit-order.admin') }}",
-                        data: {
-                            order_type: orderType,
-                            payment_status: paymentStatus,
-                            table_number: tableNumber,
-                            _token: $('meta[name="csrf-token"]').attr('content'),
-                        },
-                        success: function(data) {
-                            if (data.response == true) {
-                                orderId.text(data.orderId);
-                                radioContainer.find(":radio").prop("disabled", true);
-                                makeOrderBtn.prop('disabled', true);
-                                makeOrderBtn.text('In Queue');
-                                newOrderBtn.css('display', 'block');
-                            }
-                        },
-                        error: function(xhr, status, error) {
-                            console.log(xhr.responseText);
-                        },
-                        complete: function() {
-                            makeOrderBtn.prop('disabled', true);
-                            isSubmitting = false; // Reset the flag variable
+            if (tableNumberValue !== '') {
+                if (orderedItems.length > 0) {
+                    if (confirm('Do you want to send the order to kitchen?')) {
+                        if (isSubmitting) {
+                            return; // If form is already being submitted, ignore subsequent clicks
                         }
-                    })
+
+                        var orderType = $('input[name="order_type"]:checked').val();
+                        var paymentStatus = $('input[name="payment_status"]:checked').val();
+                        var tableNumber = $('#table-number-input').val();
+                        // console.log(orderType);
+                        // console.log(paymentStatus);
+
+                        isSubmitting = true;
+
+                        $.ajax({
+                            type: 'POST',
+                            url: "{{ route('submit-order.admin') }}",
+                            data: {
+                                order_id: orderIdValue,
+                                order_type: orderType,
+                                payment_status: paymentStatus,
+                                table_number: tableNumber,
+                                order_items: orderedItems,
+                                total_bill: totalBill,
+                                _token: $('meta[name="csrf-token"]').attr('content'),
+                            },
+                            success: function(data) {
+                                console.log(data);
+                                if (data.response == true) {
+                                    orderId.text(data.orderId);
+                                    radioContainer.find(":radio").prop("disabled", true);
+                                    tableNumberInput.prop('disabled', true);
+                                    makeOrderBtn.prop('disabled', true);
+                                    makeOrderBtn.text('In Queue');
+                                    newOrderBtn.css('display', 'block');
+                                    $('#orders-box').find('.remove_item_button').prop('disabled', true);
+                                    menuResultTable.find('.add_item_button').prop('disabled', true);
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                console.log(xhr.responseText);
+                            },
+                            complete: function() {
+                                makeOrderBtn.prop('disabled', true);
+                                isSubmitting = false; // Reset the flag variable
+                            }
+                        })
+                    }
+                } else {
+                    alert('Please add items!');
                 }
             } else {
                 alert('Please enter a table number...');
@@ -306,8 +265,6 @@
 
         });
 
-        const menuResultTable = $('#menu_result_table');
-        const menuResultHead = $("#menu_result_head");
 
         $(document).on("click", ".menu_button", function() {
             var categoryValue = $(this).data('category');
@@ -323,9 +280,9 @@
                 success: function(data) {
                     // console.log(data);
                     if (data.length > 0) {
-                        menuResultHead.append('<tr style="position: sticky;top:0;"><th scope = "col" class = "border" >Menu name</th><th scope = "col" class = "border"></th></tr>')
+                        menuResultHead.append('<tr style="position: sticky;top:0;"><th scope = "col" class = "border">' + categoryValue + '</th><th scope = "col" class = "border"></th></tr>')
                         data.forEach(function(row) {
-                            menuResultTable.append("<tr><td class='border'>" + row.name + "</td><td class='border'><button>ADD</button></td></tr>");
+                            menuResultTable.append("<tr id='item_row'><td class='border'>" + row.name + "</td><td class='border'><input type='number' min='1' id='item_quantity' style='width:70px'><button id='add_item_button' class='add_item_button' data-id='" + row.item_id + "'  data-name='" + row.name + "'  data-description='" + row.description + "' data-category='" + row.category + "' data-price='" + row.price + "' >ADD</button></td></tr>");
                         });
                     } else {
                         menuResultTable.append("<tr><td colspan='1' class='border'>No result...</tr>");
@@ -354,6 +311,82 @@
             error: function(xhr, status, error) {
                 console.log(xhr.responseText);
             }
+        });
+
+        var orderedItems = []; //initiate orderedItems array
+
+
+        //if add item is clicked
+        menuResultTable.on('click', '#add_item_button', function() {
+            // console.log(orderIdValue);
+
+            var itemQuantity = $(this).parent().find('#item_quantity').val();
+
+            if (itemQuantity == "") {
+                itemQuantity = 1;
+            }
+
+            $(this).parent().find('#item_quantity').val("");
+
+            var itemId = $(this).data('id');
+            var itemName = $(this).data('name');
+            var description = $(this).data('description');
+            var category = $(this).data('category');
+            var price = $(this).data('price');
+
+            for (let i = 0; i < orderedItems.length; i++) {
+                if (orderedItems[i].id === itemId) {
+                    alert("Item is already selected!");
+                    var selectedItem = true;
+                }
+            }
+
+            if (!selectedItem) {
+                orderedItems.push({
+                    id: itemId,
+                    name: itemName,
+                    description: description,
+                    category: category,
+                    price: price,
+                    quantity: itemQuantity,
+                });
+
+                var totalAmount = 0;
+
+                for (var item of orderedItems) {
+                    totalAmount += item.quantity * item.price;
+                }
+
+                $('#total_amount_input').text(totalAmount);
+
+                totalBill = totalAmount;
+
+                // console.log(orderedItems);
+                ordersBox.append('<div class="container-fluid m-0 p-1 border" id="item_box" style="display: flex;align-items:center;"><p class="m-0">' + itemName + ' / ' + category + ' / P ' + price + '</p><div class="m-0 mx-1 p-0 border" id="count-container"><input type="text" min="1" style="width: 60px;text-align:center;" readonly value="' + itemQuantity + '"></div><div class="m-0 p-0 border"><button id="remove_item_button" class="remove_item_button" data-id="' + itemId + '">X</button></div></div>');
+            }
+
+        });
+
+
+        //if the remove item button is clicked
+        ordersBox.on('click', '#remove_item_button', function() {
+            var itemId = $(this).data('id');
+
+            orderedItems = orderedItems.filter(function(item) {
+                return item.id !== itemId;
+            });
+
+            $(this).closest('#item_box').remove();
+
+            var totalAmount = 0;
+
+            for (const item of orderedItems) {
+                totalAmount += item.quantity * item.price;
+            }
+
+            $('#total_amount_input').text(totalAmount);
+
+            totalBill = totalAmount;
         });
     });
 </script>

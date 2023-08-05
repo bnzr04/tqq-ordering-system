@@ -21,7 +21,7 @@ return new class extends Migration
             $table->decimal('total_amount', 10, 2)->default(0);
             $table->string('payment_status'); //paid or unpaid
             $table->string('order_status'); //in-queue / preparing / now-serving / completed
-            $table->timestamp('order_time');
+            $table->timestamp('order_time')->nullable()->useCurrent(false);
 
             //cashier_id is foreign key and a primary key of user id
             $table->foreign('cashier_id')

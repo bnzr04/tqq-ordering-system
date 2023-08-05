@@ -88,12 +88,13 @@
             if (xhr.status === 200) {
                 var data = JSON.parse(xhr.responseText);
                 // console.log(data);
+
                 tableBody.innerHTML = "";
                 tableTitle.innerHTML = title;
 
                 if (data.length > 0) {
                     data.forEach(function(row) {
-                        tableBody.innerHTML += "<tr><td class='border'>" + row.formatDate + "</td><td class='border'>" + row.order_id + "</td><td class='border'>" + row.table_number + "</td><td class='border'>" + row.order_type + "</td><td class='border'>" + row.payment_status + "</td><td class='border'>" + row.order_status + "</td><td class='border'>" + row.total_amount + "</td><td class='border'><button>VIEW</button></td></tr>";
+                        tableBody.innerHTML += "<tr><td class='border'>" + row.order_time + "</td><td class='border'>" + row.order_id + "</td><td class='border'>" + row.table_number + "</td><td class='border'>" + row.order_type + "</td><td class='border'>" + row.payment_status + "</td><td class='border'>" + row.order_status + "</td><td class='border'>" + row.total_amount + "</td><td class='border'><button>VIEW</button></td></tr>";
                     });
                 } else {
                     tableBody.innerHTML = "<tr><td colspan='8'>No orders...</td></tr>";
