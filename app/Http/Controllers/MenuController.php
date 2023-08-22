@@ -70,4 +70,13 @@ class MenuController extends Controller
 
         return response()->json($data);
     }
+
+    public function searchItemByName(Request $request) //this function will retrieve the items by category
+    {
+        $searchValue = $request->input('item_name');
+
+        $data = Menu::where('name', 'LIKE', '%' . $searchValue . '%')->get();
+
+        return response()->json($data);
+    }
 }

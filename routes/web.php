@@ -6,6 +6,7 @@ use App\Http\Controllers\KitchenController;
 use App\Http\Controllers\LogController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PaymentController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -50,13 +51,22 @@ Route::prefix('admin')->middleware(['auth', 'user-access:admin'])->group(functio
     Route::get('/make-order', [OrderController::class, 'makeOrder'])->name('make-order.admin');
     Route::post('/submit-order', [OrderController::class, 'submitOrder'])->name('submit-order.admin');
     Route::get('/fetch-orders', [OrderController::class, 'fetchOrders'])->name('fetch-orders.admin');
+    Route::get('/fetch-ordered-items-of-order', [OrderController::class, 'getOrderedItemsOfOrder'])->name('fetch-ordered-items-of-order.admin');
+    Route::get('/add-new-item-to-order', [OrderController::class, 'addNewItemToOrder'])->name('add-new-item-to-order.admin');
+    Route::post('/update-item-status-complete', [OrderController::class, 'updateItemStatusToComplete'])->name('update-item-status-complete.admin');
+    Route::post('/remove-item-to-order', [OrderController::class, 'removeItemQuantity'])->name('remove-item-to-order.admin');
 
     //kitchen routes
     Route::get('/kitchen', [KitchenController::class, 'index'])->name('kitchen.admin');
+    Route::get('/search-item-name', [MenuController::class, 'searchItemByName'])->name('search-item-name.admin');
     Route::get('/fetch-kitchen-orders', [KitchenController::class, 'fetchOrders'])->name('fetch-kitchen-orders.admin');
     Route::get('/fetch-ordered-items', [KitchenController::class, 'fetchOrderItems'])->name('fetch-ordered-items.admin');
     Route::post('/update-status-preparing', [KitchenController::class, 'updateStatusToPreparing'])->name('update-status-preparing.admin');
     Route::post('/update-status-now-serving', [KitchenController::class, 'updateStatusToNowServing'])->name('update-status-now-serving.admin');
+
+    //payment routes
+    Route::get('/payment', [PaymentController::class, 'index'])->name('payment.admin');
+    Route::get('/fetch-unpaid-orders', [PaymentController::class, 'fetchUnpaidOrders'])->name('fetch-unpaid-orders.admin');
 
     //logs routes
     Route::get('/logs', [LogController::class, 'index'])->name('logs.admin');

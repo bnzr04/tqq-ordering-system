@@ -36,6 +36,7 @@
             <li><a href="#">Users</a></li>
             <li><a href="{{ route('menu.admin') }}">Menu</a></li>
             <li><a href="{{ route('orders.admin') }}">Orders</a></li>
+            <li><a href="{{ route('payment.admin') }}">Payment</a></li>
             <li><a href="{{ route('kitchen.admin') }}">Kitchen</a></li>
             <li><a href="#">Inventory</a></li>
             <li><a href="#">Sales</a></li>

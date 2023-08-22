@@ -9,24 +9,35 @@ use Illuminate\Http\Request;
 
 class KitchenController extends Controller
 {
-    public function index()
+    public function index() //this function will return the kitchen view
     {
-        return view('admin.kitchen.kitchen');
+        // return view('admin.kitchen.kitchen');
+        return view('admin.kitchen.new-kitchen');
     }
 
-    public function fetchOrders()
+    public function fetchOrders() //this function will fetch the orders from database
     {
-        $orders = Order::whereIn('order_status', ['in queue', 'preparing'])->orderByDesc('order_time')->get();
+        $orders = Order::whereIn('order_status', ['in queue', 'preparing'])
+            ->orderBy('order_time')
+            ->get(); //retrieve the orders where order_status is 'in queue' & 'prepairing'
 
-        foreach ($orders as $order) {
-            $order->order_time = Carbon::parse($order->order_time)->format('F j, Y, g:i A');
+        foreach ($orders as $order) { //for every orders that retrieved
+            $order->order_time = Carbon::parse($order->order_time)->format('F j, Y, g:i A'); //format the date value of order_time in readable format 
 
-            $orderedItemCount = Order_Item::where('order_id', $order->order_id)->count('order_item_id');
+            $orderedItemCount = Order_Item::where('order_id', $order->order_id)->count('order_item_id'); //the total count of the items in an order
 
-            $order->item_count = $orderedItemCount;
+            $order->item_count = $orderedItemCount; //store the items count
+
+            //
+            $orderedItems = Order_Item::join('menu_items', 'order_items.menu_item_id', '=', 'menu_items.item_id')
+                ->where('order_items.order_id', $order->order_id)
+                ->whereIn('order_items.status', ['in queue', 'preparing'])
+                ->get();
+
+            $order->ordered_items = $orderedItems;
         }
 
-        return response()->json($orders);
+        return response()->json(['order' => $orders]);
     }
 
     public function fetchOrderItems(Request $request)
@@ -39,6 +50,8 @@ class KitchenController extends Controller
 
         $orderedItems = Order_Item::join('menu_items', 'order_items.menu_item_id', '=', 'menu_items.item_id')
             ->where('order_id', $order_id)
+            // ->where('order_items.status', 'in queue')
+            ->orderByDesc('order_items.created_at')
             ->get();
 
         return response()->json([
@@ -57,9 +70,18 @@ class KitchenController extends Controller
         $order = Order::find($order_id);
 
         if ($order) {
+
+            $orderedItems = Order_Item::where('order_id', $order_id)->where('status', 'in queue')->get();
+
             $order->order_status = "preparing";
 
             if ($order->save()) {
+
+                foreach ($orderedItems as $item) {
+                    $item->status = 'preparing';
+                    $item->save();
+                }
+
                 $order_status = ucwords($order->order_status);
 
                 $activity = "Order ID [" . $order_id . "] status is now preparing.";
@@ -81,16 +103,25 @@ class KitchenController extends Controller
 
         $order = Order::find($order_id);
 
+        $orderCount = Order::where('order_status', ['in queue', 'preparing'])->count('order_id');
+
         if ($order) {
-            $order->order_status = "now serving";
+            $orderedItems = Order_Item::where('order_id', $order_id)->where('status', 'preparing')->get();
+
+            $order->order_status = "serving";
 
             if ($order->save()) {
+
+                foreach ($orderedItems as $item) {
+                    $item->status = 'serving';
+                    $item->save();
+                }
                 $order_status = ucwords($order->order_status);
 
                 $activity = "Order ID [" . $order_id . "] status is cooked and ready to serve.";
                 $log->endLog($user_id, $user_type, $activity);
 
-                return response()->json(['response' => true, 'order_status' => $order_status]);
+                return response()->json(['response' => true, 'order_status' => $order_status, 'order_count' => $orderCount]);
             } else {
                 return response()->json(['response' => false]);
             }

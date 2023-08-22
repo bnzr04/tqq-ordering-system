@@ -94,7 +94,7 @@
                     var currentCount = data.length;
 
                     if (currentCount > previousCount) {
-                        playNotificationSound();
+                        // playNotificationSound();
                     }
 
                     previousCount = currentCount;

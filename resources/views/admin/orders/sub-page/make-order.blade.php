@@ -3,7 +3,7 @@
 <style>
     .grid-container {
         display: grid;
-        grid: 100vh / 200px auto;
+        /* grid: 100vh / 200px auto; */
         min-height: 100vh;
     }
 
@@ -71,9 +71,6 @@
     }
 </style>
 <div class="container-fluid p-0 m-0 grid-container">
-    <div class="container-fluid m-0 p-0">
-        @include('layouts.sidebar')
-    </div>
     <div class="container-fluid m-0 p-0" style="position:relative;">
         <div class="container-fluid m-0 p-0">
             <h3 class="m-0 p-2 shadow" style="letter-spacing: 2px;">Make Order</h3>
@@ -85,6 +82,7 @@
                 <div class="container-fluid p-2 m-0 border border-secondary" id="sub-menu">
                     <div class="container-fluid m-0 p-0 mb-1">
                         <a href="{{ route('orders.admin') }}" class="btn btn-dark">Back</a>
+                        <a href="{{ route('payment.admin') }}" class="btn btn-secondary">Payment</a>
                     </div>
                     <section class="layout border" id="menu_category_selector">
                         <button class="rounded-1">&nbsp;</button>
@@ -96,12 +94,9 @@
                         <button class="rounded-1">&nbsp;</button>
                         <button class="rounded-1">&nbsp;</button>
                         <button class="rounded-1">&nbsp;</button>
-                        <!-- <button class="rounded-1">Dessert</button>
-                        <button class="rounded-1">Beverages</button>
-                        <button class="rounded-1">Side Dishes</button> -->
                     </section>
                     <div class="container-fluid m-0 p-1 border">
-                        <input type="text" name="" id="" placeholder="Search menu..." class="form-control">
+                        <input type="text" id="search_item_input" placeholder="Search menu..." class="form-control">
                     </div>
                     <div class="container-fluid m-0 border m-0 p-0" id="menu_result">
                         <table class="table table-striped table-dark">
@@ -165,31 +160,68 @@
         const tableNumberInput = $("#table-number-input");
         const ordersBox = $("#orders-box");
 
+        const searchItemInput = $('#search_item_input');
+
         const menuResultTable = $('#menu_result_table');
         const menuResultHead = $("#menu_result_head");
 
-        var totalBill = 0;
+        const menuCategorySelector = $('#menu_category_selector');
+
+        var totalAmount = 0;
 
         var orderIdValue = 0;
+
+        var nextDailyOrderId = 0
 
         function showNextOrderId() { //this function will show the next order id
             $.ajax({
                 type: "GET",
                 url: "{{ route('next-order-id.admin') }}",
                 success: function(data) {
-                    orderIdValue = data;
+                    console.log(data);
 
-                    if (data) {
-                        orderId.text(data);
-                    }
+                    orderIdValue = data.next_order_id; //store the data value which container the next order id
+
+                    orderId.text(data.daily_order_id); //display the orderIdValue
+                    nextDailyOrderId = data.daily_order_id; //set the value of orderIdValue
                 },
                 error: function(xhr, status, error) {
                     console.log(xhr.responseText);
                 }
             });
+            // nextDailyOrderId = orderIdValue;
+            // console.log(nextDailyOrderId);
         }
 
-        showNextOrderId();
+        showNextOrderId(); //excecute the function
+
+        searchItemInput.on('input', function() { //this function will search the item by name typing
+            var inputValue = $(this).val();
+
+            $.ajax({
+                type: 'GET',
+                url: "{{ route('search-item-name.admin') }}",
+                data: {
+                    item_name: inputValue,
+                },
+                success: function(data) {
+                    // console.log(data);
+                    menuResultTable.html('');
+
+                    if (data.length > 0) {
+                        menuResultHead.html('');
+                        data.forEach(function(row) {
+                            menuResultTable.append("<tr id='item_row'><td class='border'>" + row.name + "  /  " + row.category + "  /  " + row.price + "</td><td class='border'><input type='number' min='1' id='item_quantity' style='width:70px'><button id='add_item_button' class='add_item_button' data-id='" + row.item_id + "'  data-name='" + row.name + "'  data-description='" + row.description + "' data-category='" + row.category + "' data-price='" + row.price + "' >ADD</button></td></tr>");
+                        });
+                    } else {
+                        menuResultTable.append("<tr><td colspan='2'>No result...</td></tr>")
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.log(chr.responseText);
+                }
+            });
+        });
 
         newOrderBtn.on('click', function() { //if the new-order-btn is clicked the order page will reload
             location.reload();
@@ -199,13 +231,14 @@
 
         //this will execute if the make-order-btn is clicked
         $("#make-order-btn").on("click", function() {
+            // console.log(totalAmount);
+
+            var dailyOrderId = parseInt(orderId.text())
+
+            // console.log(dailyOrderId)
             var tableNumberValue = tableNumberInput.val(); //get the table number input value
 
             var total = $('#total_amount_input').text();
-
-            // console.log(totalBill);
-
-            console.log(orderedItems)
 
             if (tableNumberValue !== '') {
                 if (orderedItems.length > 0) {
@@ -227,17 +260,18 @@
                             url: "{{ route('submit-order.admin') }}",
                             data: {
                                 order_id: orderIdValue,
+                                daily_order_id: dailyOrderId,
                                 order_type: orderType,
                                 payment_status: paymentStatus,
                                 table_number: tableNumber,
                                 order_items: orderedItems,
-                                total_bill: totalBill,
+                                total_bill: totalAmount,
                                 _token: $('meta[name="csrf-token"]').attr('content'),
                             },
                             success: function(data) {
                                 console.log(data);
                                 if (data.response == true) {
-                                    orderId.text(data.orderId);
+                                    orderId.text(dailyOrderId);
                                     radioContainer.find(":radio").prop("disabled", true);
                                     tableNumberInput.prop('disabled', true);
                                     makeOrderBtn.prop('disabled', true);
@@ -245,6 +279,9 @@
                                     newOrderBtn.css('display', 'block');
                                     $('#orders-box').find('.remove_item_button').prop('disabled', true);
                                     menuResultTable.find('.add_item_button').prop('disabled', true);
+                                    menuResultTable.find('input').prop('disabled', true);
+                                    menuCategorySelector.find('button').prop('disabled', true);
+                                    searchItemInput.prop('disabled', true);
                                 }
                             },
                             error: function(xhr, status, error) {
@@ -280,9 +317,9 @@
                 success: function(data) {
                     // console.log(data);
                     if (data.length > 0) {
-                        menuResultHead.append('<tr style="position: sticky;top:0;"><th scope = "col" class = "border">' + categoryValue + '</th><th scope = "col" class = "border"></th></tr>')
+                        menuResultHead.append('<tr style="position: sticky;top:0;"><th scope = "col" class = "border text-center">' + categoryValue + '</th><th scope = "col" class = "border"></th></tr>')
                         data.forEach(function(row) {
-                            menuResultTable.append("<tr id='item_row'><td class='border'>" + row.name + "</td><td class='border'><input type='number' min='1' id='item_quantity' style='width:70px'><button id='add_item_button' class='add_item_button' data-id='" + row.item_id + "'  data-name='" + row.name + "'  data-description='" + row.description + "' data-category='" + row.category + "' data-price='" + row.price + "' >ADD</button></td></tr>");
+                            menuResultTable.append("<tr id='item_row'><td class='border'>" + row.name + "  /  " + row.category + "  /  " + row.price + "</td><td class='border'><input type='number' min='1' id='item_quantity' style='width:70px'><button id='add_item_button' class='add_item_button' data-id='" + row.item_id + "'  data-name='" + row.name + "'  data-description='" + row.description + "' data-category='" + row.category + "' data-price='" + row.price + "' >ADD</button></td></tr>");
                         });
                     } else {
                         menuResultTable.append("<tr><td colspan='1' class='border'>No result...</tr>");
@@ -293,8 +330,6 @@
                 }
             });
         });
-
-        const menuCategorySelector = $("#menu_category_selector");
 
         $.ajax({
             type: "GET",
@@ -315,10 +350,22 @@
 
         var orderedItems = []; //initiate orderedItems array
 
+        function incrementQuantityOfItemOrder(itemId, itemRow, itemQuantity) {
+            itemQuantity = parseInt(itemQuantity);
+            for (let i = 0; i < orderedItems.length; i++) {
+                if (orderedItems[i].id === itemId) {
+                    orderedItems[i].quantity += itemQuantity;
+
+                    itemRow.parent().find("[data-id='" + orderedItems[i].id + "']").val(orderedItems[i].quantity);
+                    totalAmount += orderedItems[i].price * itemQuantity;
+                }
+            }
+
+            $('#total_amount_input').text(totalAmount);
+        }
 
         //if add item is clicked
         menuResultTable.on('click', '#add_item_button', function() {
-            // console.log(orderIdValue);
 
             var itemQuantity = $(this).parent().find('#item_quantity').val();
 
@@ -326,17 +373,18 @@
                 itemQuantity = 1;
             }
 
+            itemQuantity = parseInt(itemQuantity);
+
             $(this).parent().find('#item_quantity').val("");
 
             var itemId = $(this).data('id');
             var itemName = $(this).data('name');
             var description = $(this).data('description');
             var category = $(this).data('category');
-            var price = $(this).data('price');
+            var price = parseInt($(this).data('price'));
 
             for (let i = 0; i < orderedItems.length; i++) {
                 if (orderedItems[i].id === itemId) {
-                    alert("Item is already selected!");
                     var selectedItem = true;
                 }
             }
@@ -351,18 +399,20 @@
                     quantity: itemQuantity,
                 });
 
-                var totalAmount = 0;
-
-                for (var item of orderedItems) {
-                    totalAmount += item.quantity * item.price;
+                if (itemQuantity !== '') {
+                    totalAmount += price * itemQuantity;
+                } else {
+                    totalAmount += price;
                 }
 
                 $('#total_amount_input').text(totalAmount);
 
-                totalBill = totalAmount;
+                ordersBox.append('<div class="container-fluid m-0 p-1 border" id="item_box" style="display: flex;align-items:center;"><p class="m-0">' + itemName + ' / ' + category + ' / P ' + price + '</p><div class="m-0 mx-1 p-0 border" id="count-container"><input id="ordered_item_quantity" data-id="' + itemId + '" type="text" min="1" style="width: 60px;text-align:center;" readonly value="' + itemQuantity + '"></div><div class="m-0 p-0 border"><button>-</button><button>+</button><button id="remove_item_button" class="remove_item_button ms-1" data-id="' + itemId + '">X</button></div></div>');
 
+            } else {
+                var itemRow = $('#item_box');
                 // console.log(orderedItems);
-                ordersBox.append('<div class="container-fluid m-0 p-1 border" id="item_box" style="display: flex;align-items:center;"><p class="m-0">' + itemName + ' / ' + category + ' / P ' + price + '</p><div class="m-0 mx-1 p-0 border" id="count-container"><input type="text" min="1" style="width: 60px;text-align:center;" readonly value="' + itemQuantity + '"></div><div class="m-0 p-0 border"><button id="remove_item_button" class="remove_item_button" data-id="' + itemId + '">X</button></div></div>');
+                incrementQuantityOfItemOrder(itemId, itemRow, itemQuantity)
             }
 
         });
@@ -370,23 +420,26 @@
 
         //if the remove item button is clicked
         ordersBox.on('click', '#remove_item_button', function() {
-            var itemId = $(this).data('id');
+            var itemId = $(this).data('id'); //store the value of data-id from this button
+
+            for (let i = 0; i < orderedItems.length; i++) {
+                if (orderedItems[i].id === itemId) { //if the itemId is match
+                    var toSubtract = orderedItems[i].price * orderedItems[i].quantity; //multiply the ordered item price to the quantity and store the product value
+                }
+            }
+
+
+
+            totalAmount -= toSubtract; //subtract the value of toSubtract to the totalAmount value
+
+            $('#total_amount_input').text(totalAmount); //display the totalAmount value to the id = "total_amount_input" input
+
 
             orderedItems = orderedItems.filter(function(item) {
                 return item.id !== itemId;
             });
 
             $(this).closest('#item_box').remove();
-
-            var totalAmount = 0;
-
-            for (const item of orderedItems) {
-                totalAmount += item.quantity * item.price;
-            }
-
-            $('#total_amount_input').text(totalAmount);
-
-            totalBill = totalAmount;
         });
     });
 </script>
