@@ -167,7 +167,7 @@
 
         const menuCategorySelector = $('#menu_category_selector');
 
-        var totalAmount = 0;
+        var totalAmount = 0.00;
 
         var orderIdValue = 0;
 
@@ -178,7 +178,7 @@
                 type: "GET",
                 url: "{{ route('next-order-id.admin') }}",
                 success: function(data) {
-                    console.log(data);
+                    // console.log(data);
 
                     orderIdValue = data.next_order_id; //store the data value which container the next order id
 
@@ -189,8 +189,6 @@
                     console.log(xhr.responseText);
                 }
             });
-            // nextDailyOrderId = orderIdValue;
-            // console.log(nextDailyOrderId);
         }
 
         showNextOrderId(); //excecute the function
@@ -211,7 +209,11 @@
                     if (data.length > 0) {
                         menuResultHead.html('');
                         data.forEach(function(row) {
-                            menuResultTable.append("<tr id='item_row'><td class='border'>" + row.name + "  /  " + row.category + "  /  " + row.price + "</td><td class='border'><input type='number' min='1' id='item_quantity' style='width:70px'><button id='add_item_button' class='add_item_button' data-id='" + row.item_id + "'  data-name='" + row.name + "'  data-description='" + row.description + "' data-category='" + row.category + "' data-price='" + row.price + "' >ADD</button></td></tr>");
+                            if (row.quantity == null) {
+                                row.quantity = 0;
+                            }
+
+                            menuResultTable.append("<tr id='item_row'><td class='border'>" + row.name + "  /  " + row.category + "  /  " + row.price + "  /  [" + row.quantity + "]</td><td class='border'><input type='number' min='1' id='item_quantity' style='width:70px'><button id='add_item_button' class='add_item_button' data-id='" + row.item_id + "'  data-name='" + row.name + "'  data-description='" + row.description + "' data-category='" + row.category + "' data-price='" + row.price + "' data-quantity='" + row.quantity + "'>ADD</button></td></tr>");
                         });
                     } else {
                         menuResultTable.append("<tr><td colspan='2'>No result...</td></tr>")
@@ -250,8 +252,6 @@
                         var orderType = $('input[name="order_type"]:checked').val();
                         var paymentStatus = $('input[name="payment_status"]:checked').val();
                         var tableNumber = $('#table-number-input').val();
-                        // console.log(orderType);
-                        // console.log(paymentStatus);
 
                         isSubmitting = true;
 
@@ -269,7 +269,6 @@
                                 _token: $('meta[name="csrf-token"]').attr('content'),
                             },
                             success: function(data) {
-                                console.log(data);
                                 if (data.response == true) {
                                     orderId.text(dailyOrderId);
                                     radioContainer.find(":radio").prop("disabled", true);
@@ -307,6 +306,7 @@
             var categoryValue = $(this).data('category');
             menuResultTable.empty();
             menuResultHead.empty();
+            $("#search_item_input").val("");
 
             $.ajax({
                 type: "GET",
@@ -315,11 +315,14 @@
                     category_value: categoryValue,
                 },
                 success: function(data) {
-                    // console.log(data);
                     if (data.length > 0) {
                         menuResultHead.append('<tr style="position: sticky;top:0;"><th scope = "col" class = "border text-center">' + categoryValue + '</th><th scope = "col" class = "border"></th></tr>')
                         data.forEach(function(row) {
-                            menuResultTable.append("<tr id='item_row'><td class='border'>" + row.name + "  /  " + row.category + "  /  " + row.price + "</td><td class='border'><input type='number' min='1' id='item_quantity' style='width:70px'><button id='add_item_button' class='add_item_button' data-id='" + row.item_id + "'  data-name='" + row.name + "'  data-description='" + row.description + "' data-category='" + row.category + "' data-price='" + row.price + "' >ADD</button></td></tr>");
+                            if (row.quantity == null) {
+                                row.quantity = 0;
+                            }
+
+                            menuResultTable.append("<tr id='item_row'><td class='border'>" + row.name + "  /  " + row.category + "  /  " + row.price + " / [" + row.quantity + "]</td><td class='border'><input type='number' min='1' id='item_quantity' style='width:70px'><button id='add_item_button' class='add_item_button' data-id='" + row.item_id + "'  data-name='" + row.name + "'  data-description='" + row.description + "' data-category='" + row.category + "' data-price='" + row.price + "' data-quantity='" + row.quantity + "' >ADD</button></td></tr>");
                         });
                     } else {
                         menuResultTable.append("<tr><td colspan='1' class='border'>No result...</tr>");
@@ -335,7 +338,6 @@
             type: "GET",
             url: "{{ route('fetch-menu.admin') }}",
             success: function(data) {
-                // console.log(data.category);
                 menuCategorySelector.empty();
                 if (data.category.length > 0) {
                     data.category.forEach(function(row) {
@@ -357,15 +359,15 @@
                     orderedItems[i].quantity += itemQuantity;
 
                     itemRow.parent().find("[data-id='" + orderedItems[i].id + "']").val(orderedItems[i].quantity);
-                    totalAmount += orderedItems[i].price * itemQuantity;
+                    totalAmount += parseFloat(orderedItems[i].price) * itemQuantity;
                 }
             }
 
-            $('#total_amount_input').text(totalAmount);
+            $('#total_amount_input').text(totalAmount.toFixed(2));
         }
 
         //if add item is clicked
-        menuResultTable.on('click', '#add_item_button', function() {
+        menuResultTable.on('click', '.add_item_button', function() {
 
             var itemQuantity = $(this).parent().find('#item_quantity').val();
 
@@ -381,38 +383,54 @@
             var itemName = $(this).data('name');
             var description = $(this).data('description');
             var category = $(this).data('category');
-            var price = parseInt($(this).data('price'));
+            var price = $(this).data('price');
+            var stockQuantity = $(this).data('quantity');
 
             for (let i = 0; i < orderedItems.length; i++) {
                 if (orderedItems[i].id === itemId) {
+                    var quantity = orderedItems[i].quantity;
                     var selectedItem = true;
                 }
             }
 
-            if (!selectedItem) {
-                orderedItems.push({
-                    id: itemId,
-                    name: itemName,
-                    description: description,
-                    category: category,
-                    price: price,
-                    quantity: itemQuantity,
-                });
-
-                if (itemQuantity !== '') {
-                    totalAmount += price * itemQuantity;
+            if (stockQuantity != 0) {
+                if (itemQuantity > stockQuantity) {
+                    alert("Quantity must be less than or equal to " + stockQuantity + "!")
                 } else {
-                    totalAmount += price;
+                    if (!selectedItem) {
+                        orderedItems.push({
+                            id: itemId,
+                            name: itemName,
+                            description: description,
+                            category: category,
+                            price: price,
+                            quantity: itemQuantity,
+                        });
+
+                        if (itemQuantity !== '') {
+                            totalAmount += price * itemQuantity;
+                        } else {
+                            totalAmount += price;
+                        }
+
+                        $('#total_amount_input').text(totalAmount.toFixed(2));
+
+                        ordersBox.append('<div class="container-fluid m-0 p-1 border" id="item_box" style="display: flex;align-items:center;"><p class="m-0">' + itemName + ' / ' + category + ' / P ' + price + '</p><div class="m-0 mx-1 p-0 border" id="count-container"><input id="ordered_item_quantity" data-id="' + itemId + '" type="text" min="1" style="width: 60px;text-align:center;" readonly value="' + itemQuantity + '"></div><div class="m-0 p-0 border"><button>-</button><button>+</button><button id="remove_item_button" class="remove_item_button ms-1" data-id="' + itemId + '">X</button></div></div>');
+
+                    } else {
+                        var itemRow = $('#item_box');
+
+                        var newQuantity = quantity + itemQuantity;
+
+                        if (newQuantity > stockQuantity) {
+                            alert(itemName + " / " + category + " reached the stock quantity limit!");
+                        } else {
+                            incrementQuantityOfItemOrder(itemId, itemRow, itemQuantity);
+                        }
+                    }
                 }
-
-                $('#total_amount_input').text(totalAmount);
-
-                ordersBox.append('<div class="container-fluid m-0 p-1 border" id="item_box" style="display: flex;align-items:center;"><p class="m-0">' + itemName + ' / ' + category + ' / P ' + price + '</p><div class="m-0 mx-1 p-0 border" id="count-container"><input id="ordered_item_quantity" data-id="' + itemId + '" type="text" min="1" style="width: 60px;text-align:center;" readonly value="' + itemQuantity + '"></div><div class="m-0 p-0 border"><button>-</button><button>+</button><button id="remove_item_button" class="remove_item_button ms-1" data-id="' + itemId + '">X</button></div></div>');
-
             } else {
-                var itemRow = $('#item_box');
-                // console.log(orderedItems);
-                incrementQuantityOfItemOrder(itemId, itemRow, itemQuantity)
+                alert('Sorry, Item cannot add because the stock is ' + stockQuantity + '.');
             }
 
         });

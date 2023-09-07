@@ -18,10 +18,10 @@
         display: block;
     }
 
-    .data_container {
+    /* .data_container {
         max-height: 150px;
         overflow-y: auto;
-    }
+    } */
 
     .order_content {
         background-color: #ffffff;
@@ -30,6 +30,15 @@
         border-bottom: #000 1px solid;
         display: flex;
         justify-content: space-between;
+        align-items: center;
+    }
+
+    .order_control_container {
+        background-color: #ffffff;
+        padding: 0 10px;
+        color: black;
+        border-bottom: #000 1px solid;
+        display: flex;
         align-items: center;
     }
 
@@ -116,34 +125,24 @@
             <a class="btn btn-dark" href="{{ route('make-order.admin') }}" title="Make New Order">Make Order +</a>
         </div>
         <div class="container-fluid m-0 p-2 border-top border-bottom" style="display: flex;align-items:center">
-            <!-- <a href="" class="btn btn-dark mx-1">This Day</a>
-            <a href="" class="btn btn-dark mx-1">This Week</a>
-            <a href="" class="btn btn-dark mx-1">This Month</a>
-            <form class="mx-2 p-1" style="display: flex;align-items:center;">
-                <label for="date_from" class="m-0" style="letter-spacing: 2px;">From</label>
-                <input type="date" class="form-control m-0 mx-1" id="date_from" required>
-                <label for="date_to" class="m-0" style="letter-spacing: 2px;">To</label>
-                <input type="date" class="form-control m-0 mx-1" id="date_to" required>
-                <button class="p-2 rounded">Filter</button>
-            </form> -->
+            <div class="d-flex border m-0 p-1">
+                <button class="btn btn-dark mx-1" id="today_btn">Today</button>
+                <button class="btn btn-dark mx-1" id="yesterday_btn">Yesterday</button>
+                <div class="mx-3 p-0" style="display: flex;align-items:center;">
+                    <label for="date_input" class="m-0" style="letter-spacing: 2px;text-wrap:nowrap;">Filter date</label>
+                    <input type="date" class="form-control m-0 mx-1" id="date_input" required>
+                    <button class="p-2 rounded" id="filter_date_button">Filter</button>
+                </div>
+            </div>
             <div class="container-fluid m-0 p-1">
-                <button class="btn btn-dark mx-1" id="all-btn">All</button>
-                <button class="btn btn-dark mx-1" id="in-queue-btn">In Queue</button>
-                <button class="btn btn-dark mx-1" id="preparing-btn">Preparing</button>
-                <button class="btn btn-dark mx-1" id="now-serving-btn">Serving</button>
-                <button class="btn btn-dark mx-1" id="completed-btn">Completed</button>
+                <button class="btn btn-dark mx-1" id="unpaid_btn">Unpaid Orders</button>
+                <button class="btn btn-dark mx-1" id="paid_btn">Paid Orders</button>
             </div>
-            <div class="container-fluid m-0 p-0" style="display: flex;align-items:center;">
-                <label for="date_from" class="m-0" style="letter-spacing: 2px;">From</label>
-                <input type="date" class="form-control m-0 mx-1" id="date_from" required>
-                <label for="date_to" class="m-0" style="letter-spacing: 2px;">To</label>
-                <input type="date" class="form-control m-0 mx-1" id="date_to" required>
-                <button class="p-2 rounded" id="filter_date_button">Filter</button>
-            </div>
+
         </div>
         <div class="container-fluid m-0 p-2">
             <div class="containter-fluid mx-3 my-1 p-0">
-                <h4 class="m-0 p-0 fw-bold" style="letter-spacing: 4px;" id="table-title">Current Orders</h4>
+                <h4 class="m-0 p-0 fw-bold" style="letter-spacing: 4px;" id="table-title"></h4>
             </div>
             <div class="container-fluid p-0 border border-secondary" id="order_container" style="height: 65vh;overflow-y:auto">
 
@@ -216,11 +215,45 @@
         const tableBody = $('#table-body');
         const tableTitle = $("#table-title");
         const orderContainer = $("#order_container");
-        const allBtn = $('#all-btn');
-        const inQueueBtn = $('#in-queue-btn');
-        const preparingBtn = $('#preparing-btn');
-        const nowServingBtn = $('#now-serving-btn');
-        const completedBtn = $('#completed-btn');
+
+
+        function updateOrderStatus(orderId, newStatus) {
+            var orderElement = $("div[data-order-id='" + orderId + "']");
+            var orderStatusElement = orderElement.find('.order_box_status span');
+            var textOrder = orderElement.find('.text_order_container');
+            orderStatusElement.text(newStatus);
+
+            var serveAllButton = $("<button type='button' id='serve_button'>SERVE</button>");
+
+            var cancelOrderButton = $("<button type='button' id='cancel_button'>CANCEL</button>");
+
+            updateButtons = true;
+            if (newStatus == 'serving') {
+                var serveButton = textOrder.find("[id='serve_button']");
+            } else if (newStatus == 'in queue') {
+                var cancelButton = textOrder.find("[id='cancel_button']");
+            }
+
+        }
+
+        function orderStatusInterval() {
+            $.ajax({
+                type: 'GET',
+                url: url,
+                success: function(data) {
+                    // console.log(data);
+                    if (data.length > 0) {
+                        data.forEach(function(row) {
+                            // Update order status if needed
+                            updateOrderStatus(row.order_id, row.order_status);
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.log(xhr.responseText);
+                }
+            });
+        }
 
         function orders() {
             $.ajax({
@@ -228,12 +261,14 @@
                 url: url,
                 success: function(data) {
                     // console.log(data);
+                    tableTitle.text("");
                     orderContainer.html('');
+                    tableTitle.text(titleText);
 
                     if (data.length > 0) {
+
                         data.forEach(function(row) {
                             var itemsCount = row.ordered_items.length;
-                            // var data = "";
 
                             var mainContainer = $("<div class='main'></div>");
                             var dataContainer = $("<div class='data_container hide'></div>");
@@ -242,7 +277,7 @@
 
                             var textOrder = $("<div class='text_order_container'></div>");
 
-                            var clickableContent = $("<div style='border-right:white 2px solid;padding: 0 10px'><b>Time: </b>" + row.formatDate + "</div><div style='border-right:white 2px solid;padding: 0 10px'><b>Order ID </b>[" + row.daily_order_id + "]</div><div style='border-right:white 2px solid;padding: 0 10px'><b>Table # </b>[" + row.table_number + "]</div><div style='border-right:white 2px solid;padding: 0 10px'><b>Items </b>[" + itemsCount + "]</div><div style='border-right:white 2px solid;padding: 0 10px' class='order_box_status'><b>Status </b>[<span>" + row.order_status + "</span>]</div><div style='border-right:white 2px solid;padding: 0 10px'><b>Amount </b>[" + row.total_amount + "]</div>");
+                            var clickableContent = $("<div style='border-right:white 2px solid;padding: 0 10px'><b>Time: </b>" + row.formatDate + "</div><div style='border-right:white 2px solid;padding: 0 10px' title='" + row.order_id + "'><b>Order ID </b>[" + row.daily_order_id + "]</div><div style='border-right:white 2px solid;padding: 0 10px'><b>Table # </b>[" + row.table_number + "]</div><div style='border-right:white 2px solid;padding: 0 10px'><b>Items </b>[" + itemsCount + "]</div><div style='border-right:white 2px solid;padding: 0 10px' class='order_box_status'><b>Status </b>[<span>" + row.order_status + "</span>]</div><div style='border-right:white 2px solid;padding: 0 10px'><b>Amount </b>[" + row.total_amount + "]</div><div style='border-right:white 2px solid;padding: 0 10px'>" + row.payment_status + "</div>");
 
                             var addItemButton = $("<button type='button' class='add_order_button' data-bs-toggle='modal' data-order-id='" + row.order_id + "' data-bs-target='#add_item_modal'>ADD</button>")
 
@@ -258,21 +293,10 @@
                             mainContainer.append(dataContainer);
                             clickableContainer.append(textOrder);
                             textOrder.append(clickableContent);
-                            textOrder.append(addItemButton);
-
-                            if (row.order_status == 'serving') {
-                                textOrder.append(serveAllButton);
-                            } else if (row.order_status == 'in queue') {
-                                textOrder.append(cancelOrderButton);
-                            }
-
-                            textOrder.append(printBillButton);
 
                             clickableContainer.prepend(arrowContainer);
-                            // dataContainer.append(data);
 
                             orderContainer.append(mainContainer);
-                            // data.empty();
                         });
                     } else {
                         orderContainer.append("<div class=' shadow px-2 p-1 my-1'><b>No orders...</b></div>");
@@ -284,56 +308,166 @@
             });
         }
 
+        var mainUrl = "{{ route('fetch-orders.admin') }}";
         var url = "{{ route('fetch-orders.admin') }}";
-        var title = "All Orders";
+        let title = "Today Orders";
+        var titleText = title;
         orders();
 
-        allBtn.on('click', function() {
-            url = "{{ route('fetch-orders.admin') }}";
-            title = "All Orders";
+        setInterval(orderStatusInterval, 10000); // 10000 milliseconds = 10 seconds
+
+        const todayBtn = $('#today_btn');
+        const yesterdayBtn = $('#yesterday_btn');
+        const inQueueBtn = $('#in_queue_button');
+
+        const unpaidOrdersBtn = $('#unpaid_btn');
+        const paidOrdersBtn = $('#paid_btn');
+
+        let currentUrl = "{{ route('fetch-orders.admin') }}";
+        var dayFilter = "?today=1";
+
+        todayBtn.on('click', function() {
+            isOrderFilteredByDate = false;
+
+            url = mainUrl;
+            dayFilter = "?today=1";
+            title = "Today Orders";
+            titleText = title;
             orders();
+
+            filterDateUrl = undefined;
+            dateValue = undefined;
+            $('#date_input').val("");
         });
 
-        inQueueBtn.on('click', function() {
-            url = "{{ route('fetch-orders.admin') }}?in-queue=1";
-            title = "In Queue Orders";
-            orders();
-        });
+        yesterdayBtn.on('click', function() {
+            isOrderFilteredByDate = false;
 
-        preparingBtn.on('click', function() {
-            url = "{{ route('fetch-orders.admin') }}?preparing=1";
-            title = "Preparing Orders";
+            dayFilter = "?yesterday=1";
+            url = mainUrl + dayFilter;
+            title = "Yesterday Orders";
+            titleText = title;
             orders();
-        });
 
-        nowServingBtn.on('click', function() {
-            url = "{{ route('fetch-orders.admin') }}?now-serving=1";
-            title = "Serving Orders";
-            orders();
-        });
-
-        completedBtn.on('click', function() {
-            url = "{{ route('fetch-orders.admin') }}?completed=1";
-            title = "Completed Orders";
-            orders();
+            filterDateUrl = undefined;
+            dateValue = undefined;
+            $('#date_input').val("");
         });
 
 
-        $('#filter_date_button').on('click', function(event) {
-            event.preventDefault();
+        var mainFilterDateUrl = "{{ route('fetch-orders-by-date.admin') }}";
+        var paymentStatus;
+        let subTitle;
+        var filterDateUrl;
+        var dateFilter;
+        var dateValue;
+        var filterDateTitle;
+        var isOrderFilteredByDate = false;
 
-            var dateFrom = $('#date_from').val();
-            var dateTo = $('#date_to').val();
+        unpaidOrdersBtn.on('click', function() {
 
-            if (dateFrom !== '' && dateTo !== '') {
-                alert(dateFrom + " " + dateTo);
+            paymentStatus = "&payment-status=unpaid";
+            subTitle = " * Unpaid Orders";
+
+            if (isOrderFilteredByDate !== true) {
+                url = mainUrl + dayFilter + paymentStatus;
+                titleText = title + subTitle;
+                orders();
             } else {
-                // $('#date_from').addClass('border');
-                // $('#date_from').addClass('border-danger');
-                $('#date_from').focus();
-                // $('#date_to').addClass('border');
-                // $('#date_to').addClass('border-danger');
-                $('#date_to').focus();
+                if (dateValue !== undefined) {
+                    filterDateUrl = mainFilterDateUrl + "?filter-date=" + dateValue + paymentStatus;
+                    fetchFilteredDateOrders(subTitle);
+                }
+            }
+        });
+
+        paidOrdersBtn.on('click', function() {
+
+            paymentStatus = "&payment-status=paid";
+            subTitle = " * Paid Orders";
+
+            if (isOrderFilteredByDate !== true) {
+                url = mainUrl + dayFilter + paymentStatus;
+                titleText = title + subTitle;
+                orders();
+            } else {
+                if (dateValue !== undefined) {
+                    filterDateUrl = mainFilterDateUrl + "?filter-date=" + dateValue + paymentStatus;
+                    fetchFilteredDateOrders(subTitle);
+                }
+            }
+
+        });
+
+        function fetchFilteredDateOrders(title) {
+            $.ajax({
+                type: "get",
+                url: filterDateUrl,
+                success: function(data) {
+                    filterDateTitle = "Orders of " + data.date;
+
+                    if (title == undefined) {
+                        title = "";
+                    }
+
+                    tableTitle.text(filterDateTitle + title);
+                    orderContainer.html('');
+
+                    if (data.orders.length > 0) {
+                        data.orders.forEach(function(row) {
+                            var itemsCount = row.ordered_items.length;
+
+                            var mainContainer = $("<div class='main'></div>");
+                            var dataContainer = $("<div class='data_container hide'></div>");
+
+                            var clickableContainer = $("<div data-order-id='" + row.order_id + "' class='order_box hide border-bottom border-secondary text-white shadow p-1'></div>");
+
+                            var textOrder = $("<div class='text_order_container'></div>");
+
+                            var clickableContent = $("<div style='border-right:white 2px solid;padding: 0 10px'><b>Time: </b>" + row.formatDate + "</div><div style='border-right:white 2px solid;padding: 0 10px' title='" + row.order_id + "'><b>Order ID </b>[" + row.daily_order_id + "]</div><div style='border-right:white 2px solid;padding: 0 10px'><b>Table # </b>[" + row.table_number + "]</div><div style='border-right:white 2px solid;padding: 0 10px'><b>Items </b>[" + itemsCount + "]</div><div style='border-right:white 2px solid;padding: 0 10px' class='order_box_status'><b>Status </b>[<span>" + row.order_status + "</span>]</div><div style='border-right:white 2px solid;padding: 0 10px'><b>Amount </b>[" + row.total_amount + "]</div><div style='border-right:white 2px solid;padding: 0 10px'>" + row.payment_status + "</div>");
+
+                            var addItemButton = $("<button type='button' class='add_order_button' data-bs-toggle='modal' data-order-id='" + row.order_id + "' data-bs-target='#add_item_modal'>ADD</button>")
+
+                            var printBillButton = $("<button type='button' id='print_button'><img src='{{ asset('/icons/icons8-print-32.png')}}'  width='20px'>");
+
+                            var serveAllButton = $("<button type='button'>SERVE</button>");
+
+                            var cancelOrderButton = $("<button type='button'>CANCEL</button>");
+
+                            var arrowContainer = $("<div class='arrow_container border' data-order-id='" + row.order_id + "'><img src='{{ asset('/icons/play.png') }}' width='15px'></div>");
+
+                            mainContainer.append(clickableContainer);
+                            mainContainer.append(dataContainer);
+                            clickableContainer.append(textOrder);
+                            textOrder.append(clickableContent);
+
+                            clickableContainer.prepend(arrowContainer);
+
+                            orderContainer.append(mainContainer);
+                        });
+                    } else {
+                        orderContainer.append("<div class=' shadow px-2 p-1 my-1'><b>No orders...</b></div>");
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.log(xhr.responseText);
+                }
+            });
+        }
+
+
+        $('#filter_date_button').on('click', function(event) { //retrieve orders filtered by date
+            event.preventDefault();
+            isOrderFilteredByDate = true;
+
+            dateValue = $('#date_input').val();
+            dateFilter = `?filter-date=${dateValue}`;
+            filterDateUrl = mainFilterDateUrl + dateFilter;
+
+            if (dateValue !== '') {
+                fetchFilteredDateOrders();
+            } else {
+                $('#date_input').focus();
             }
 
         });
@@ -366,15 +500,44 @@
                     success: function(data) {
                         // console.log(data);
                         var row = "";
+                        var orderControlContainer = "";
                         dataContainer.empty();
 
                         var orderStatus = data.order_status;
+                        var dailyOrderId = data.daily_order_id;
 
                         main.find('.order_box_status').children('span').text(orderStatus.toLowerCase());
 
                         if (data.ordered_items.length > 0) {
+                            var addItemButton = $("<button type='button' class='add_order_button mx-1' data-bs-toggle='modal' data-order-id='" + data.order_id + "' data-daily-order-id='" + dailyOrderId + "' data-bs-target='#add_item_modal'>ADD ITEM</button>")
+
+                            var printBillButton = $("<button type='button' id='print_button'><img src='{{ asset('/icons/icons8-print-32.png')}}'  width='20px'>");
+
+                            var serveAllButton = $("<button type='button' class='mx-1'>SERVE</button>");
+
+                            var cancelOrderButton = $("<button type='button' class='mx-1'>CANCEL</button>");
+
+                            orderControlContainer = $("<div class='order_control_container p-1'></div>");
+
+                            dataContainer.prepend(orderControlContainer);
+                            orderControlContainer.append(addItemButton);
+
+                            if (data.order_status == "Serving") {
+                                orderControlContainer.append(serveAllButton);
+                            } else if (data.order_status == "In Queue") {
+                                orderControlContainer.append(cancelOrderButton);
+                            }
+
+                            if (data.payment_status == "unpaid") {
+                                orderControlContainer.append(printBillButton);
+                            }
+
                             data.ordered_items.forEach(function(item) {
-                                row = $("<div class='order_content p-0 py-1'><div class='mx-1'>" + item.name + " / " + item.category + " / " + item.quantity + "</div><div class='status_container me-1' style='display:flex;align-items:center;'><p class='p-0 m-0'>" + item.status + "</p></div></div>");
+                                var itemPrice = parseFloat(item.price);
+                                var itemSubTotal = itemPrice * item.quantity;
+                                itemSubTotal = itemSubTotal.toFixed(2);
+
+                                row = $("<div class='order_content p-0 py-1'><div class='mx-1'>" + item.name + " / " + item.category + " / " + item.quantity + " / " + item.price + " / [ P " + itemSubTotal + " ]</div><div class='status_container me-1' style='display:flex;align-items:center;'><p class='p-0 m-0'>" + item.status + "</p></div></div>");
 
                                 dataContainer.append(row);
 
@@ -486,7 +649,7 @@
                         _token: $('meta[name="csrf-token"]').attr('content'),
                     },
                     success: function(data) {
-                        // console.log(data)
+                        console.log(data)
                         if (data.in_queue_status == true) {
                             window.location.reload();
                         } else {
@@ -534,14 +697,14 @@
         })
 
         var addedItemArray = [];
-        var totalAddedBill = 0;
-        var subTotal = 0;
+        var totalAddedBill = 0.00;
+        var subTotal = 0.00;
 
         $('#modal_result_container').on('click', '.add_item_button', function() {
             var itemId = $(this).data('item-id');
             var itemName = $(this).data('item-name');
             var itemCategory = $(this).data('category');
-            var itemPrice = parseInt($(this).data('item-price'));
+            var itemPrice = parseFloat($(this).data('item-price'));
             var orderId = $(this).parents('.modal-body').find('#modal_order_id').val();
 
             const modalOrderContainer = $('#modal_order_container');
@@ -578,10 +741,10 @@
                     price: itemPrice,
                     quantity: quantityValue,
                     price: itemPrice,
-                    subtotal: itemSubtotal,
+                    subtotal: parseFloat(itemSubtotal.toFixed(2)),
                 });
 
-                $('#subtotal_display').text(subTotal);
+                $('#subtotal_display').text(subTotal.toFixed(2));
 
                 modalOrderContainer.append('<div class="container-fluid border-bottom border-secondary p-0 py-1" id="modal_order_box"><div class="container-fluid m-0">' + itemName + ' / ' + itemCategory + ' / ' + itemPrice + '</div><input type="number" min="1" class="added_item_input me-1 text-center" value = "' + quantityValue + '" readonly><button class="me-1 remove_item_button" data-item-id="' + itemId + '" data-sub-total="' + itemSubtotal + '">X</button></div>');
             } else {
@@ -591,8 +754,10 @@
 
         $('#order_container').on('click', '.add_order_button', function() {
             var orderId = $(this).data('order-id');
+            var dailyOrderid = $(this).data('daily-order-id');
 
             toAddItemOrderId = orderId;
+            dailyOrderId = dailyOrderid;
             $('#modal_order_id').val(orderId)
         });
 
@@ -611,9 +776,9 @@
         })
 
         $(document).on('click', '#close_modal_button', function() { //this event will execeute if the close button in the modal is clicked
-            addedItemArray = []; //remove all the array inside the addedItemArray 
-            totalAddedBill = 0;
-            subTotal = 0;
+            addedItemArray = []; //set the array to empty
+            totalAddedBill = 0; //set the totalAddedBill to 0
+            subTotal = 0.00;
             $('#subtotal_display').text(subTotal);
             $('#search_item_input').val(''); //remove the value inside the id='search_item_input' input
             $('#modal_result_container').empty(); //remove the html content inside the id = 'modal_result_container'
@@ -621,24 +786,32 @@
         });
 
         var toAddItemOrderId = 0 //inititate 0 value
+        var dailyOrderId;
 
-        $(document).on('click', '#add_new_item_button', function() { //if the button id = 'add_new_item_button' is clicked
-
-            $.ajax({
-                type: "GET",
-                url: "{{ route('add-new-item-to-order.admin') }}",
-                data: {
-                    subtotal: subTotal,
-                    order_id: toAddItemOrderId,
-                    added_items: addedItemArray,
-                },
-                success: function(data) {
-                    window.location.reload();
-                },
-                error: function(xhr, status, error) {
-                    console.log(xhr.responseText);
-                }
-            })
+        //ADD button with id='add_new_item_button' on add item modal will add the items from addedItemArray to the order
+        $(document).on('click', '#add_new_item_button', function() {
+            subTotal = subTotal.toFixed(2);
+            if (addedItemArray.length > 0) {
+                $.ajax({
+                    type: "GET",
+                    url: "{{ route('add-new-item-to-order.admin') }}",
+                    data: {
+                        subtotal: subTotal,
+                        order_id: toAddItemOrderId,
+                        added_items: addedItemArray,
+                    },
+                    success: function(data) {
+                        // console.log(data);
+                        alert("Item/s successfully added to Order ID [" + dailyOrderId + "]");
+                        window.location.reload();
+                    },
+                    error: function(xhr, status, error) {
+                        console.log(xhr.responseText);
+                    }
+                });
+            } else {
+                alert("Please add item to proceed.");
+            }
         })
     });
 </script>

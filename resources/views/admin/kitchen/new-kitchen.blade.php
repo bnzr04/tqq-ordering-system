@@ -98,7 +98,7 @@
                             const doneButton = "<button class='bg-success rounded-2 text-white' data-order-id='" + row.order_id + "' data-order-status='" + row.order_status + "' id='done_button'>Done</button>";
 
                             const container = $("<div class='container border p-0 m-0 shadow'></div>");
-                            const header = $("<div class='container-fluid m-0 p-2 border-bottom bg-dark text-white'><h6 class='m-0'>Order : <span>" + row.daily_order_id + "</span></h6></div>");
+                            const header = $("<div class='container-fluid m-0 p-2 border-bottom bg-dark text-white'></div>");
                             const itemListContainer = $("<div class='container-fluid p-0 text-white list-container item_list_display'></div>");
 
                             const footerContainer = $("<div class='container-fluid m-0 p-0 container-footer border-top d-flex' style='justify-content:center'></div>");

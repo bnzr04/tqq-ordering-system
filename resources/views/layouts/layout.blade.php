@@ -19,7 +19,7 @@
         <div class="container-fluid m-0 p-0">
             <h3 class="m-0 p-2 shadow" style="letter-spacing: 2px;">Kitchen</h3>
         </div>
-        <div class="container-fluid m-0 p-0 border content">
+        <div class="container-fluid m-0 p-0 content">
             <!-- content here -->
         </div>
     </div>

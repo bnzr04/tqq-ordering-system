@@ -7,6 +7,7 @@ use App\Http\Controllers\LogController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\StockController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -44,6 +45,13 @@ Route::prefix('admin')->middleware(['auth', 'user-access:admin'])->group(functio
     Route::get('/filter-menu', [MenuController::class, 'filterItemByCategory'])->name('filter-menu.admin');
     Route::get('/fetch-menu', [MenuController::class, 'fetchItem'])->name('fetch-menu.admin');
     Route::post('/save-menu-item', [MenuController::class, 'saveItem'])->name('save-item.admin');
+    Route::post('/update-item-info', [MenuController::class, 'updateItemInformation'])->name('update-item-info.admin');
+    Route::post('/delete-item-info', [MenuController::class, 'removeItemInformation'])->name('delete-item-info.admin');
+
+    //stocks routes
+    Route::get('/stocks', [StockController::class, 'index'])->name('stocks.admin');
+    Route::get('/fetch-items-and-stocks', [StockController::class, 'fetchItemsAndStocks'])->name('fetch-items-and-stocks.admin');
+    Route::post('/add-item-stock', [StockController::class, 'addOrRemoveStockQuantity'])->name('add-item-stock.admin');
 
     //orders routes
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.admin');
@@ -51,6 +59,7 @@ Route::prefix('admin')->middleware(['auth', 'user-access:admin'])->group(functio
     Route::get('/make-order', [OrderController::class, 'makeOrder'])->name('make-order.admin');
     Route::post('/submit-order', [OrderController::class, 'submitOrder'])->name('submit-order.admin');
     Route::get('/fetch-orders', [OrderController::class, 'fetchOrders'])->name('fetch-orders.admin');
+    Route::get('/fetch-orders-by-date', [OrderController::class, 'fetchOrdersByDate'])->name('fetch-orders-by-date.admin');
     Route::get('/fetch-ordered-items-of-order', [OrderController::class, 'getOrderedItemsOfOrder'])->name('fetch-ordered-items-of-order.admin');
     Route::get('/add-new-item-to-order', [OrderController::class, 'addNewItemToOrder'])->name('add-new-item-to-order.admin');
     Route::post('/update-item-status-complete', [OrderController::class, 'updateItemStatusToComplete'])->name('update-item-status-complete.admin');

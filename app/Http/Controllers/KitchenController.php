@@ -18,17 +18,18 @@ class KitchenController extends Controller
     public function fetchOrders() //this function will fetch the orders from database
     {
         $orders = Order::whereIn('order_status', ['in queue', 'preparing'])
-            ->orderBy('order_time')
-            ->get(); //retrieve the orders where order_status is 'in queue' & 'prepairing'
+            ->orderBy('updated_at')
+            ->get(); //retrieve the orders where order_status is 'in queue' & 'preparing'
 
         foreach ($orders as $order) { //for every orders that retrieved
-            $order->order_time = Carbon::parse($order->order_time)->format('F j, Y, g:i A'); //format the date value of order_time in readable format 
+            $order->created_at = Carbon::parse($order->created_at)->format('F j, Y, g:i A'); //format the date value of created_at in readable format 
 
             $orderedItemCount = Order_Item::where('order_id', $order->order_id)->count('order_item_id'); //the total count of the items in an order
 
             $order->item_count = $orderedItemCount; //store the items count
 
-            //
+            $dateToday = Carbon::now()->format("Y-m-d");
+
             $orderedItems = Order_Item::join('menu_items', 'order_items.menu_item_id', '=', 'menu_items.item_id')
                 ->where('order_items.order_id', $order->order_id)
                 ->whereIn('order_items.status', ['in queue', 'preparing'])
@@ -44,18 +45,22 @@ class KitchenController extends Controller
     {
         $order_id = $request->input('order_id');
 
-        $orderStatus = Order::where('order_id', $order_id)->value('order_status');
+        $order = Order::where('order_id', $order_id)->first();
 
-        $orderStatus = ucwords($orderStatus);
+        $dailyOrderId = $order->daily_order_id;
+        $orderPaymentStatus = $order->payment_status;
+        $orderStatus = ucwords($order->order_status);
 
         $orderedItems = Order_Item::join('menu_items', 'order_items.menu_item_id', '=', 'menu_items.item_id')
-            ->where('order_id', $order_id)
-            // ->where('order_items.status', 'in queue')
-            ->orderByDesc('order_items.created_at')
+            ->where('order_items.order_id', $order_id)
+            ->orderByDesc('order_items.updated_at')
             ->get();
 
         return response()->json([
+            'order_id' => $order_id,
+            'daily_order_id' => $dailyOrderId,
             'order_status' => $orderStatus,
+            'payment_status' => $orderPaymentStatus,
             'ordered_items' => $orderedItems
         ]);
     }
