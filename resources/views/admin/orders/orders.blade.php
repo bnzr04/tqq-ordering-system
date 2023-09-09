@@ -134,9 +134,13 @@
                     <button class="p-2 rounded" id="filter_date_button">Filter</button>
                 </div>
             </div>
-            <div class="container-fluid m-0 p-1">
+            <div class="d-flex m-0 p-1">
                 <button class="btn btn-dark mx-1" id="unpaid_btn">Unpaid Orders</button>
                 <button class="btn btn-dark mx-1" id="paid_btn">Paid Orders</button>
+            </div>
+            <div class="d-flex m-0 p-0">
+                <button class="btn btn-dark mx-1" id="dine_in_btn">Dine-in</button>
+                <button class="btn btn-dark mx-1" id="take_out_btn">Take-out</button>
             </div>
 
         </div>
@@ -323,6 +327,9 @@
         const unpaidOrdersBtn = $('#unpaid_btn');
         const paidOrdersBtn = $('#paid_btn');
 
+        const dineInBtn = $('#dine_in_btn');
+        const takeOutBtn = $('#take_out_btn');
+
         let currentUrl = "{{ route('fetch-orders.admin') }}";
         var dayFilter = "?today=1";
 
@@ -357,6 +364,7 @@
 
         var mainFilterDateUrl = "{{ route('fetch-orders-by-date.admin') }}";
         var paymentStatus;
+        var orderType;
         let subTitle;
         var filterDateUrl;
         var dateFilter;
@@ -397,6 +405,14 @@
                 }
             }
 
+        });
+
+        dineInBtn.on('click', function() {
+            orderType = "&order-type=dine-in";
+        });
+
+        takeOutBtn.on('click', function() {
+            orderType = "&order-type=take-out";
         });
 
         function fetchFilteredDateOrders(title) {
@@ -589,42 +605,42 @@
             $('#remove_modal_body').children('input').val('1');
         });
 
-        $(document).on('click', '.remove_item', function() {
-            var orderId = $(this).data('order-id');
-            var itemOrderId = $(this).data('item-order-id');
-            var itemName = $(this).data('item-name');
-            var itemQuantity = $(this).data('item-quantity');
-            var statusContainer = $(this).parent();
+        // $(document).on('click', '.remove_item', function() {
+        //     var orderId = $(this).data('order-id');
+        //     var itemOrderId = $(this).data('item-order-id');
+        //     var itemName = $(this).data('item-name');
+        //     var itemQuantity = $(this).data('item-quantity');
+        //     var statusContainer = $(this).parent();
 
-            $('#order_id_input').val(orderId);
-            $('#item_order_id_input').val(itemOrderId);
-            $('#item_name_display').text(itemName);
-            $('#quantity_input').attr('max', itemQuantity);
+        //     $('#order_id_input').val(orderId);
+        //     $('#item_order_id_input').val(itemOrderId);
+        //     $('#item_name_display').text(itemName);
+        //     $('#quantity_input').attr('max', itemQuantity);
 
-            // $.ajax({
-            //     type: "POST",
-            //     url: "{{ route('remove-item-to-order.admin') }}",
-            //     data: {
-            //         order_id: orderId,
-            //         item_order_id: itemOrderId,
-            //         _token: $('meta[name="csrf-token"]').attr('content'),
-            //     },
-            //     success: function(data) {
-            //         console.log(data)
-            //         if (data.in_queue_status == true) {
-            //             statusContainer.children('p').text('canceled');
-            //             statusContainer.children('button').remove();
+        //     // $.ajax({
+        //     //     type: "POST",
+        //     //     url: "{{ route('remove-item-to-order.admin') }}",
+        //     //     data: {
+        //     //         order_id: orderId,
+        //     //         item_order_id: itemOrderId,
+        //     //         _token: $('meta[name="csrf-token"]').attr('content'),
+        //     //     },
+        //     //     success: function(data) {
+        //     //         console.log(data)
+        //     //         if (data.in_queue_status == true) {
+        //     //             statusContainer.children('p').text('canceled');
+        //     //             statusContainer.children('button').remove();
 
 
-            //         } else {
-            //             alert('Item failed to cancel, \nmaybe the item is either preparing or serving.');
-            //         }
-            //     },
-            //     error: function(xhr, status, error) {
-            //         console.log(xhr.responseText);
-            //     }
-            // });
-        });
+        //     //         } else {
+        //     //             alert('Item failed to cancel, \nmaybe the item is either preparing or serving.');
+        //     //         }
+        //     //     },
+        //     //     error: function(xhr, status, error) {
+        //     //         console.log(xhr.responseText);
+        //     //     }
+        //     // });
+        // });
 
         $(document).on('click', '#remove_modal_button', function() {
 
@@ -633,10 +649,6 @@
             var orderId = parseInt(removeModal.find('#order_id_input').val());
             var itemOrderId = parseInt(removeModal.find('#item_order_id_input').val());
             var removeQuantity = parseInt(removeModal.find('#quantity_input').val());
-
-            // console.log(orderId)
-            // console.log(itemOrderId)
-            // console.log(removeQuantity)
 
             if (confirm('Are you sure you want to remove this?')) {
                 $.ajax({

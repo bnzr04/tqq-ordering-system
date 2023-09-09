@@ -125,16 +125,27 @@ class OrderController extends Controller
         }
     }
 
-    // public function filterUnpaidAndPaidOrders($orders, $paymentStatus)
-    // {
-    //     if ($paymentStatus == 'unpaid') {
-    //         $orders = $orders->where('payment_status', 'unpaid');
-    //     } else if ($paymentStatus == 'paid') {
-    //         $orders = $orders->where('payment_status', 'paid');
-    //     }
+    public function filterUnpaidAndPaidOrders($orders, $paymentStatus)
+    {
+        if ($paymentStatus == 'unpaid') {
+            $orders = $orders->where('payment_status', 'unpaid');
+        } else if ($paymentStatus == 'paid') {
+            $orders = $orders->where('payment_status', 'paid');
+        }
 
-    //     return $orders;
-    // }
+        return $orders;
+    }
+
+    public function filterDineInAndTakeOutOrders($orders, $orderType)
+    {
+        if ($orderType == 'dine-in') {
+            $orders = $orders->where('order_type', 'dine-in');
+        } else if ($orderType == 'take-out') {
+            $orders = $orders->where('order_type', 'take-out');
+        }
+
+        return $orders;
+    }
 
     public function fetchOrders(Request $request) //this function will retrieve all the orders
     {
@@ -152,13 +163,7 @@ class OrderController extends Controller
             $to = Carbon::now()->endOfDay(); //get the todays date and the end time to 23:59:59 of the current date
         }
 
-        if ($paymentStatus) {
-            if ($paymentStatus == 'unpaid') {
-                $orders = $orders->where('payment_status', 'unpaid');
-            } else if ($paymentStatus == 'paid') {
-                $orders = $orders->where('payment_status', 'paid');
-            }
-        }
+        $this->filterUnpaidAndPaidOrders($orders, $paymentStatus);
 
         $orders = $orders->whereBetween('created_at', [$from, $to])
             ->orderByDesc('created_at')
@@ -186,13 +191,7 @@ class OrderController extends Controller
 
         $filteredOrders = Order::whereBetween("created_at", [$start, $end]);
 
-        if ($paymentStatus) {
-            if ($paymentStatus == 'unpaid') {
-                $filteredOrders = $filteredOrders->where('payment_status', 'unpaid');
-            } else if ($paymentStatus == 'paid') {
-                $filteredOrders = $filteredOrders->where('payment_status', 'paid');
-            }
-        }
+        $this->filterUnpaidAndPaidOrders($filteredOrders, $paymentStatus);
 
         $filteredOrders = $filteredOrders->get();
 
