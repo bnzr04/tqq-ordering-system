@@ -38,9 +38,6 @@ class LogController extends Controller
             $to = Carbon::now()->endOfDay();
         }
 
-        // $from = Carbon::parse($from)->format('Y-m-d H:i:s');
-        // $to = Carbon::parse($to)->format('Y-m-d H:i:s');
-
         $logs = Log::whereBetween('created_at', [$from, $to])
             ->orderByDesc('created_at')
             ->get();

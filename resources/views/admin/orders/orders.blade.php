@@ -79,7 +79,7 @@
         transform: rotate(90deg);
     }
 
-    #print_button {
+    #paymentButton {
         background-color: #1a1a1a;
     }
 
@@ -112,6 +112,40 @@
     .added_item_input {
         width: 70px;
     }
+
+    .paymentModalBodyContainer {
+        display: grid;
+        grid-template-columns: auto auto;
+    }
+
+    #container1,
+    #container2 {
+        height: 60vh;
+    }
+
+    #container1 {
+        grid-row: 1/2;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        letter-spacing: 3px;
+        text-align: center;
+    }
+
+    #container1 input {
+        text-align: center;
+        font-size: 26px;
+    }
+
+    #container2 {
+        overflow: auto;
+    }
+
+    #container2 li {
+        border-bottom: #595959 1px solid;
+        padding: 5px 0;
+    }
 </style>
 <div class="container-fluid p-0 m-0 grid-container">
     <div class="container-fluid m-0 p-0">
@@ -138,10 +172,10 @@
                 <button class="btn btn-dark mx-1" id="unpaid_btn">Unpaid Orders</button>
                 <button class="btn btn-dark mx-1" id="paid_btn">Paid Orders</button>
             </div>
-            <div class="d-flex m-0 p-0">
+            <!-- <div class="d-flex m-0 p-0">
                 <button class="btn btn-dark mx-1" id="dine_in_btn">Dine-in</button>
                 <button class="btn btn-dark mx-1" id="take_out_btn">Take-out</button>
-            </div>
+            </div> -->
 
         </div>
         <div class="container-fluid m-0 p-2">
@@ -203,9 +237,10 @@
                 <input type="hidden" class="form-control border-secondary text-center" id="item_order_id_input">
 
                 <h5><b id="item_name_display"></b></h5>
+                <h6>Current Quantity<br><b id="current_item_quantity_display"></b></h6>
 
-                <label for="quantity_input">Quantity</label>
-                <input type="number" id="quantity_input" class="form-control border-secondary text-center" value="1">
+                <label for="quantity_input">Remove Quantity</label>
+                <input type="number" id="quantity_input" class="form-control border-secondary text-center" min="1" value="1">
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="close_remove_modal">Close</button>
@@ -214,11 +249,55 @@
         </div>
     </div>
 </div>
+
+<!-- Payment Modal -->
+<div class="modal fade" id="paymentModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="staticBackdropLabel" style="letter-spacing: 3px;">PAYMENT</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" id="cancelPaymentModal"></button>
+            </div>
+            <div class="modal-body paymentModalBodyContainer">
+                <div class="container-fluid m-0 p-1" id="container1">
+                    <div class="container-fluid m-0 p-2">
+                        <h3 style="letter-spacing: 3px;">TOTAL AMOUNT</h3>
+                        <h1>P <span id="paymentModalTotalAmountDisplay">-</span></h1>
+                    </div>
+                    <div class="container-fluid p-3">
+                        <h4>ENTER CASH</h4>
+                        <input type="number" class="form-control border border-secondary" id="cashInput">
+                        <button class="btn btn-dark mt-4 proceedButtonPaymentModal" style="width:300px;letter-spacing:3px;">PROCEED</button>
+                    </div>
+                </div>
+                <div class="container-fluid m-0 p-1 border border-secondary rounded-3" id="container2">
+                    <ul id="itemsListDisplay">
+
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelPaymentModal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
 <script>
     $(document).ready(function() {
+
         const tableBody = $('#table-body');
         const tableTitle = $("#table-title");
         const orderContainer = $("#order_container");
+        const paymentModal = $("#paymentModal");
+        var mainFilterDateUrl = "{{ route('fetch-orders-by-date.admin') }}";
+        var paymentStatus;
+        var orderType;
+        let subTitle;
+        var filterDateUrl;
+        var dateFilter;
+        var dateValue;
+        var filterDateTitle;
+        var isOrderFilteredByDate = false;
 
 
         function updateOrderStatus(orderId, newStatus) {
@@ -231,7 +310,6 @@
 
             var cancelOrderButton = $("<button type='button' id='cancel_button'>CANCEL</button>");
 
-            updateButtons = true;
             if (newStatus == 'serving') {
                 var serveButton = textOrder.find("[id='serve_button']");
             } else if (newStatus == 'in queue') {
@@ -285,8 +363,6 @@
 
                             var addItemButton = $("<button type='button' class='add_order_button' data-bs-toggle='modal' data-order-id='" + row.order_id + "' data-bs-target='#add_item_modal'>ADD</button>")
 
-                            var printBillButton = $("<button type='button' id='print_button'><img src='{{ asset('/icons/icons8-print-32.png')}}'  width='20px'>");
-
                             var serveAllButton = $("<button type='button'>SERVE</button>");
 
                             var cancelOrderButton = $("<button type='button'>CANCEL</button>");
@@ -309,6 +385,24 @@
                 error: function(xhr, status, error) {
                     console.log(xhr.responseText);
                 }
+            });
+        }
+
+        function getItemsOrder(orderId) {
+            return new Promise(function(resolve, reject) {
+                $.ajax({
+                    type: 'GET',
+                    url: "{{ route('fetch-ordered-items.admin') }}",
+                    data: {
+                        order_id: orderId,
+                    },
+                    success: function(data) {
+                        resolve(data);
+                    },
+                    error: function(xhr, status, error) {
+                        reject(error);
+                    }
+                })
             });
         }
 
@@ -341,7 +435,6 @@
             title = "Today Orders";
             titleText = title;
             orders();
-
             filterDateUrl = undefined;
             dateValue = undefined;
             $('#date_input').val("");
@@ -360,17 +453,6 @@
             dateValue = undefined;
             $('#date_input').val("");
         });
-
-
-        var mainFilterDateUrl = "{{ route('fetch-orders-by-date.admin') }}";
-        var paymentStatus;
-        var orderType;
-        let subTitle;
-        var filterDateUrl;
-        var dateFilter;
-        var dateValue;
-        var filterDateTitle;
-        var isOrderFilteredByDate = false;
 
         unpaidOrdersBtn.on('click', function() {
 
@@ -444,8 +526,6 @@
 
                             var addItemButton = $("<button type='button' class='add_order_button' data-bs-toggle='modal' data-order-id='" + row.order_id + "' data-bs-target='#add_item_modal'>ADD</button>")
 
-                            var printBillButton = $("<button type='button' id='print_button'><img src='{{ asset('/icons/icons8-print-32.png')}}'  width='20px'>");
-
                             var serveAllButton = $("<button type='button'>SERVE</button>");
 
                             var cancelOrderButton = $("<button type='button'>CANCEL</button>");
@@ -469,7 +549,103 @@
                     console.log(xhr.responseText);
                 }
             });
+        };
+
+        paymentModal.on("click", ".proceedButtonPaymentModal", function() {
+            const cashInput = paymentModal.find("#cashInput");
+            var orderId = $(this).attr("data-order-id");
+            var totalAmount = parseFloat($(this).attr("data-total-amount"));
+
+            if (cashInput.val() !== "") {
+                var cash = parseFloat(cashInput.val());
+                var change = cash - totalAmount;
+
+                if (cash >= totalAmount) {
+                    var generateReceiptRoute = "{{ route('generate-receipt') }}";
+                    var makeOrderAsPaidToute = "{{ route('make-order-paid.admin') }}";
+                    $.getScript("{{ asset('js/payment.js') }}", function() {
+                        generateReceipt(orderId, cash, change, generateReceiptRoute);
+                        makeOrderAsPaid(orderId, makeOrderAsPaidToute)
+                            .then(function(response) {
+                                if (response) {
+                                    paymentModal.modal("hide");
+                                    orders();
+                                }
+                            })
+                            .catch(function(error) {
+                                console.error(error);
+                            });
+                    });
+
+                    alert("CHANGE: " + change);
+                } else {
+                    alert("Cash not enough!");
+                }
+            } else {
+                cashInput.focus();
+            }
+        });
+
+        paymentModal.on("click", "#cancelPaymentModal", function() {
+            const cashInput = paymentModal.find("#cashInput");
+            cashInput.val("");
+        });
+
+        function getOrderedItems(orderId) {
+            return new Promise(function(resolve, reject) {
+                $.ajax({
+                    type: "get",
+                    url: "{{ route('fetch-ordered-items-of-order.admin') }}",
+                    data: {
+                        order_id: orderId
+                    },
+                    success: function(data) {
+                        resolve(data); // Resolve the promise with the data
+                    },
+                    error: function(xhr, status, error) {
+                        reject(error); // Reject the promise with an error message
+                    }
+                });
+            });
         }
+
+        $(document).on('click', '#paymentButton', function() {
+            var orderId = $(this).data("order-id");
+            const amountDisplay = paymentModal.find("#paymentModalTotalAmountDisplay");
+
+            getOrderedItems(orderId)
+                .then(function(data) {
+                    var itemListDisplay = $("#itemsListDisplay");
+                    itemListDisplay.empty();
+                    var itemSubTotal = 0.00;
+                    var totalAmount = 0.00;
+
+                    if (data.length > 0) {
+                        data.forEach(function(item) {
+                            var quantity = item.quantity;
+                            var price = item.price;
+                            itemSubTotal = price * quantity;
+                            totalAmount += itemSubTotal;
+
+                            var itemRow = $("<li>").text(item.name + " - " + item.category + " - " + quantity + " - @ " + price + " - [" + itemSubTotal.toFixed(2) + "]");
+                            itemListDisplay.append(itemRow);
+                        });
+
+                        amountDisplay.text(totalAmount.toFixed(2));
+                        paymentModal.find(".proceedButtonPaymentModal").attr("data-total-amount", totalAmount.toFixed(2));
+                    } else {
+                        var emptyRow = $("<li>").text("No item...");
+                        itemListDisplay.append(emptyRow);
+                    }
+                })
+                .catch(function(error) {
+                    console.error(error);
+                });
+
+            paymentModal.find(".proceedButtonPaymentModal").attr("data-order-id", orderId);
+            paymentModal.modal("show");
+
+        });
 
 
         $('#filter_date_button').on('click', function(event) { //retrieve orders filtered by date
@@ -507,14 +683,8 @@
                 $(this).parent().toggleClass('show');
                 $(this).toggleClass('show');
 
-                $.ajax({
-                    type: 'GET',
-                    url: "{{ route('fetch-ordered-items.admin') }}",
-                    data: {
-                        order_id: orderId,
-                    },
-                    success: function(data) {
-                        // console.log(data);
+                getItemsOrder(orderId)
+                    .then(function(data) {
                         var row = "";
                         var orderControlContainer = "";
                         dataContainer.empty();
@@ -527,25 +697,30 @@
                         if (data.ordered_items.length > 0) {
                             var addItemButton = $("<button type='button' class='add_order_button mx-1' data-bs-toggle='modal' data-order-id='" + data.order_id + "' data-daily-order-id='" + dailyOrderId + "' data-bs-target='#add_item_modal'>ADD ITEM</button>")
 
-                            var printBillButton = $("<button type='button' id='print_button'><img src='{{ asset('/icons/icons8-print-32.png')}}'  width='20px'>");
+                            var paymentButton = $("<button type='button' id='paymentButton' class='text-white' data-order-id='" + data.order_id + "'>PAYMENT</button>");
 
                             var serveAllButton = $("<button type='button' class='mx-1'>SERVE</button>");
 
                             var cancelOrderButton = $("<button type='button' class='mx-1'>CANCEL</button>");
 
+                            var viewReceiptButton = $("<button type='button' class='bg-dark text-white' id='viewReceiptButton' data-order-id='" + data.order_id + "'>VIEW RECEIPT</button>");
+
                             orderControlContainer = $("<div class='order_control_container p-1'></div>");
 
                             dataContainer.prepend(orderControlContainer);
-                            orderControlContainer.append(addItemButton);
+
+                            if (data.payment_status == "unpaid") {
+                                // orderControlContainer.append(printBillButton);
+                                orderControlContainer.append(addItemButton);
+                                orderControlContainer.append(paymentButton);
+                            } else if (data.payment_status == "paid") {
+                                orderControlContainer.append(viewReceiptButton);
+                            }
 
                             if (data.order_status == "Serving") {
                                 orderControlContainer.append(serveAllButton);
-                            } else if (data.order_status == "In Queue") {
+                            } else if (data.order_status == "In Queue" && data.payment_status !== "paid") {
                                 orderControlContainer.append(cancelOrderButton);
-                            }
-
-                            if (data.payment_status == "unpaid") {
-                                orderControlContainer.append(printBillButton);
                             }
 
                             data.ordered_items.forEach(function(item) {
@@ -559,20 +734,41 @@
 
                                 if (item.status === 'serving') {
                                     var button = '<button class="mx-1 done_button" data-item-order-id="' + item.order_item_id + '" >Done</button>';
-                                } else if (item.status === 'in queue') {
-                                    var button = '<button class="mx-1 remove_item" data-order-id="' + item.order_id + '" data-item-name="' + item.name + '" data-item-order-id="' + item.order_item_id + '" data-item-quantity="' + item.quantity + '" data-bs-toggle="modal" data-bs-target="#remove_item_modal">Remove</button>';
+                                } else if (item.status === 'in queue' && data.payment_status !== "paid") {
+                                    var button = '<button class="mx-1 remove_item" data-order-id="' + item.order_id + '" data-item-name="' + item.name + '" data-item-category="' + item.category + '" data-item-price="' + item.price + '" data-item-order-id="' + item.order_item_id + '" data-item-quantity="' + item.quantity + '" data-bs-toggle="modal" data-bs-target="#remove_item_modal">Remove</button>';
                                 }
 
                                 row.find('.status_container').append(button);
                             });
                         }
-                    },
-                    error: function(xhr, status, error) {
-                        console.log(xhr.responseText);
-                    }
-                })
+                    })
+                    .catch(function(error) {
+                        console.error(error);
+                    })
+
             }
 
+        });
+
+        function printReceipt(orderId) {
+            var printReceiptRoute = `{{ route('print-receipt') }}?order_id=${orderId}`;
+            $.ajax({
+                type: "get",
+                url: printReceiptRoute,
+                success: function(data) {
+                    const receiptTab = window.open(printReceiptRoute);
+
+                    receiptTab.load();
+                },
+                error: function(xhr, status, error) {
+                    console.error(xhr.responseText);
+                }
+            })
+        }
+
+        $(document).on("click", "#viewReceiptButton", function() {
+            var orderId = $(this).data("order-id");
+            printReceipt(orderId);
         });
 
         $(document).on('click', '.done_button', function() {
@@ -601,46 +797,31 @@
             });
         });
 
-        $(document).on('click', '#close_remove_modal', function() {
-            $('#remove_modal_body').children('input').val('1');
+        $(document).on('click', '.remove_item', function() {
+            var orderId = $(this).data('order-id');
+            var itemOrderId = $(this).data('item-order-id');
+            var itemName = $(this).data('item-name');
+            var itemCategory = $(this).data('item-category');
+            var itemPrice = $(this).data('item-price');
+            var itemCurrentQuantity = $(this).data('item-quantity');
+
+            const removeItemModal = $('#remove_item_modal').children('.modal-dialog').children('.modal-content').find('#remove_modal_body');
+
+            const itemInfoDisplay = removeItemModal.children('h5').find('#item_name_display');
+            const currentItemQuantityDisplay = removeItemModal.children('h6').find('#current_item_quantity_display');
+            itemInfoDisplay.text(itemName + " / " + itemCategory + " / " + itemPrice);
+            currentItemQuantityDisplay.text(itemCurrentQuantity);
+
+            const orderIdInput = removeItemModal.find('#order_id_input');
+            const itemOrderIdInput = removeItemModal.find('#item_order_id_input');
+
+            orderIdInput.val(orderId);
+            itemOrderIdInput.val(itemOrderId);
         });
 
-        // $(document).on('click', '.remove_item', function() {
-        //     var orderId = $(this).data('order-id');
-        //     var itemOrderId = $(this).data('item-order-id');
-        //     var itemName = $(this).data('item-name');
-        //     var itemQuantity = $(this).data('item-quantity');
-        //     var statusContainer = $(this).parent();
-
-        //     $('#order_id_input').val(orderId);
-        //     $('#item_order_id_input').val(itemOrderId);
-        //     $('#item_name_display').text(itemName);
-        //     $('#quantity_input').attr('max', itemQuantity);
-
-        //     // $.ajax({
-        //     //     type: "POST",
-        //     //     url: "{{ route('remove-item-to-order.admin') }}",
-        //     //     data: {
-        //     //         order_id: orderId,
-        //     //         item_order_id: itemOrderId,
-        //     //         _token: $('meta[name="csrf-token"]').attr('content'),
-        //     //     },
-        //     //     success: function(data) {
-        //     //         console.log(data)
-        //     //         if (data.in_queue_status == true) {
-        //     //             statusContainer.children('p').text('canceled');
-        //     //             statusContainer.children('button').remove();
-
-
-        //     //         } else {
-        //     //             alert('Item failed to cancel, \nmaybe the item is either preparing or serving.');
-        //     //         }
-        //     //     },
-        //     //     error: function(xhr, status, error) {
-        //     //         console.log(xhr.responseText);
-        //     //     }
-        //     // });
-        // });
+        $(document).on('click', '#close_remove_modal', function() {
+            $('#remove_modal_body').children('#quantity_input').val('1');
+        });
 
         $(document).on('click', '#remove_modal_button', function() {
 
@@ -692,8 +873,12 @@
                     if (data.length > 0) {
                         data.forEach(function(row) {
 
+                            if (row.stock_qty == null) {
+                                row.stock_qty = 0;
+                            }
+
                             var modalOrderBox = $('<div class="container-fluid border-bottom border-secondary py-1 p-0 modal_order_box" id="modal_order_box"></div>');
-                            var modalOrderBoxContent = $('<div class="container-fluid m-0">' + row.name + ' / ' + row.category + ' / ' + row.price + '</div><div class=" d-flex quantity_input_container"><input type="number" id="result_quantity_input" class="result_quantity_input" min="1"><button class="me-1 add_item_button" id="add_item_button" data-item-id="' + row.item_id + '" data-item-name="' + row.name + '" data-category="' + row.category + '" data-item-price="' + row.price + '">ADD</button></div>');
+                            var modalOrderBoxContent = $('<div class="container-fluid m-0">' + row.name + ' / ' + row.category + ' / ' + row.price + ' / [' + row.stock_qty + ']</div><div class=" d-flex quantity_input_container"><input type="number" id="result_quantity_input" class="result_quantity_input" min="1"><button class="me-1 add_item_button" id="add_item_button" data-item-id="' + row.item_id + '" data-item-name="' + row.name + '" data-category="' + row.category + '" data-item-price="' + row.price + '" data-item-quantity="' + row.stock_qty + '">ADD</button></div>');
 
                             modalResultContainer.append(modalOrderBox);
                             modalOrderBox.append(modalOrderBoxContent);
@@ -712,18 +897,32 @@
         var totalAddedBill = 0.00;
         var subTotal = 0.00;
 
+        function incrementQuantityOfToAddItem(itemId, addedItemRow, quantityValue) {
+            quantityValue = parseInt(quantityValue);
+            for (let i = 0; i < addedItemArray.length; i++) {
+                if (addedItemArray[i].item_id === itemId) {
+                    addedItemArray[i].quantity += quantityValue;
+
+                    addedItemRow.parent().find("[data-item-id='" + addedItemArray[i].item_id + "']").val(addedItemArray[i].quantity);
+                    var itemSubtotal = parseFloat(addedItemArray[i].price) * quantityValue;
+                    subTotal += parseFloat(addedItemArray[i].price) * quantityValue;
+                }
+            }
+
+            $('#subtotal_display').text(subTotal.toFixed(2));
+        }
+
         $('#modal_result_container').on('click', '.add_item_button', function() {
             var itemId = $(this).data('item-id');
             var itemName = $(this).data('item-name');
             var itemCategory = $(this).data('category');
             var itemPrice = parseFloat($(this).data('item-price'));
             var orderId = $(this).parents('.modal-body').find('#modal_order_id').val();
+            var itemQuantity = $(this).data('item-quantity');
 
             const modalOrderContainer = $('#modal_order_container');
 
             var quantityValue = $(this).siblings('input').val();
-
-
 
             $('.result_quantity_input').val('');
 
@@ -733,34 +932,48 @@
                 quantityValue = parseInt(quantityValue);
             }
 
-
             for (let i = 0; i < addedItemArray.length; i++) {
                 if (addedItemArray[i].item_id == itemId) {
+                    var itemArrayQuantity = addedItemArray[i].quantity;
                     var selectedItem = true;
                 }
             }
 
+            if (itemQuantity > 0) {
+                if (quantityValue > itemQuantity) {
+                    alert("Quantity must be less than or equal to " + itemQuantity + "!")
+                } else {
+                    if (!selectedItem) {
+                        var itemSubtotal = itemPrice * quantityValue;
+                        subTotal += itemPrice * quantityValue;
 
-            if (selectedItem !== true) {
-                var itemSubtotal = itemPrice * quantityValue;
-                subTotal += itemPrice * quantityValue;
+                        addedItemArray.push({
+                            order_id: orderId,
+                            item_id: itemId,
+                            name: itemName,
+                            category: itemCategory,
+                            price: itemPrice,
+                            quantity: quantityValue,
+                            price: itemPrice,
+                            subtotal: parseFloat(itemSubtotal.toFixed(2)),
+                        });
 
-                addedItemArray.push({
-                    order_id: orderId,
-                    item_id: itemId,
-                    name: itemName,
-                    category: itemCategory,
-                    price: itemPrice,
-                    quantity: quantityValue,
-                    price: itemPrice,
-                    subtotal: parseFloat(itemSubtotal.toFixed(2)),
-                });
+                        $('#subtotal_display').text(subTotal.toFixed(2));
 
-                $('#subtotal_display').text(subTotal.toFixed(2));
+                        modalOrderContainer.append('<div class="container-fluid border-bottom border-secondary p-0 py-1" id="modal_order_box"><div class="container-fluid m-0">' + itemName + ' / ' + itemCategory + ' / ' + itemPrice + '</div><input type="number" data-item-id="' + itemId + '" min="1" id="added_item_input" me-1 text-center" value = "' + quantityValue + '" readonly><button class="me-1 remove_item_button" data-item-id="' + itemId + '" data-item-price="' + itemPrice + '" data-sub-total="' + itemSubtotal + '">X</button></div>');
+                    } else {
+                        var addedItemRow = $('#modal_order_box');
+                        var newQuantity = itemArrayQuantity + quantityValue;
 
-                modalOrderContainer.append('<div class="container-fluid border-bottom border-secondary p-0 py-1" id="modal_order_box"><div class="container-fluid m-0">' + itemName + ' / ' + itemCategory + ' / ' + itemPrice + '</div><input type="number" min="1" class="added_item_input me-1 text-center" value = "' + quantityValue + '" readonly><button class="me-1 remove_item_button" data-item-id="' + itemId + '" data-sub-total="' + itemSubtotal + '">X</button></div>');
+                        if (newQuantity > itemQuantity) {
+                            alert(itemName + " / " + itemCategory + " reached the stock quantity limit!");
+                        } else {
+                            incrementQuantityOfToAddItem(itemId, addedItemRow, quantityValue);
+                        }
+                    }
+                }
             } else {
-                alert('Item is already selected!');
+                alert('Sorry, Item cannot add because the stock is ' + itemQuantity + '.');
             }
         })
 
@@ -770,19 +983,22 @@
 
             toAddItemOrderId = orderId;
             dailyOrderId = dailyOrderid;
-            $('#modal_order_id').val(orderId)
+            $('#modal_order_id').val(orderId);
         });
 
         $('#modal_order_container').on('click', '.remove_item_button', function() { //this event will execute if the class = 'remove_item_button' is clicked, this is the remove item button (X) in modal
             var itemId = $(this).data('item-id'); //get the value of data-item-id in this button
-            var subtotal = $(this).data('sub-total');
+            var itemPrice = $(this).data('item-price');
+            var itemQuanity = $(this).siblings("#added_item_input").val();
 
-            subTotal = subTotal - subtotal;
+            var itemTotalSubtotal = itemPrice * itemQuanity;
+
+            subTotal = subTotal - itemTotalSubtotal;
             $('#subtotal_display').text(subTotal);
 
             addedItemArray = addedItemArray.filter(function(item) {
                 return item.item_id !== itemId; //will remove the array with matching itemId
-            })
+            });
 
             $(this).parent().remove(); //will remove the id='model_order_box'
         })
@@ -791,6 +1007,7 @@
             addedItemArray = []; //set the array to empty
             totalAddedBill = 0; //set the totalAddedBill to 0
             subTotal = 0.00;
+
             $('#subtotal_display').text(subTotal);
             $('#search_item_input').val(''); //remove the value inside the id='search_item_input' input
             $('#modal_result_container').empty(); //remove the html content inside the id = 'modal_result_container'

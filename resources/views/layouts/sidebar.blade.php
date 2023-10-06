@@ -4,6 +4,7 @@
         min-height: 100%;
         background-color: #4d4d4d;
         position: fixed;
+        z-index: 1;
     }
 
     ul {
@@ -36,10 +37,9 @@
             <li><a href="#">Users</a></li>
             <li><a href="{{ route('menu.admin') }}">Menu</a></li>
             <li><a href="{{ route('orders.admin') }}">Orders</a></li>
-            <li><a href="{{ route('payment.admin') }}">Payment</a></li>
             <li><a href="{{ route('kitchen.admin') }}">Kitchen</a></li>
             <li><a href="#">Inventory</a></li>
-            <li><a href="#">Sales</a></li>
+            <li><a href="{{ route('sales.admin') }}">Sales</a></li>
             <li><a href="{{ route('logs.admin') }}">Logs</a></li>
             @endif
 

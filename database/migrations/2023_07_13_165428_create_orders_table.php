@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id('order_id');
-            $table->integer('table_number');
+            $table->integer('table_number')->nullable();
             $table->unsignedBigInteger('cashier_id');
             $table->string('order_type'); //dine-in or take-out
             $table->decimal('total_amount', 10, 2)->default(0);

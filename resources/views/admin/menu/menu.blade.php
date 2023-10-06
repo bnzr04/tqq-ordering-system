@@ -13,6 +13,29 @@
     #edit_modal_other_input_container {
         display: none;
     }
+
+    .filter_container {
+        border-radius: 3px;
+        display: flex;
+        align-items: center;
+        background-color: #999999;
+        cursor: pointer;
+    }
+
+    .filter_container:hover {
+        background-color: #808080;
+    }
+
+    .filter_container:active {
+        background-color: #4d4d4d;
+        color: #fff;
+    }
+
+    .color_box {
+        min-width: 40px;
+        width: 40px;
+        height: 100%;
+    }
 </style>
 <div class="container-fluid p-0 m-0 grid-container">
     <div class="container-fluid m-0 p-0">
@@ -23,18 +46,44 @@
             <h3 class="m-0 p-2 shadow" style="letter-spacing: 2px;">Menu</h3>
         </div>
         <div class="container-fluid m-0 p-0" style="height: 93vh;">
-            <div class="container-fluid m-0 p-1">
-                <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#newItemModal" id="modalButton">Add item</button>
-                <button class="btn btn-dark" id="stocks_button">Stocks</button>
+            <div class="container-fluid m-0 p-2 d-flex" style="gap:10px">
+                <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#newItemModal" id="modalButton" style="letter-spacing: 2px;">ADD ITEM</button>
+                <button class="btn btn-dark" id="stocks_button" style="letter-spacing: 2px;">STOCKS</button>
+                <div class="container-fluid border d-flex" style="align-items: center;letter-spacing:2px;gap:10px;">
+                    <div class="p-2 filter_container" id="has_stock_box" data-value="has_stock">
+                        <p class="m-0">Has Stock</p>
+                    </div>
+                    <div class="p-1 filter_container" id="overmax_box" data-value="overmax">
+                        <div class="m-1 color_box" style="background-color:#00ffcc">&nbsp;</div>
+                        <p class="m-0">Over Max</p>
+                    </div>
+                    <div class="p-1 filter_container" id="safe_box" data-value="safe">
+                        <div class="m-1 color_box" style="background-color:#00ff00">&nbsp;</div>
+                        <p class="m-0">Safe</p>
+                    </div>
+                    <div class="p-1 filter_container" id="warning_box" data-value="warning">
+                        <div class="m-1 color_box" style="background-color:#ff9900">&nbsp;</div>
+                        <p class="m-0">Warning</p>
+                    </div>
+                    <div class="p-1 filter_container" id="no_stock_box" data-value="no_stock">
+                        <div class="m-1 color_box" style="background-color:#ff0000">&nbsp;</div>
+                        <p class="m-0">No Stock</p>
+                    </div>
+                </div>
             </div>
             <div class="container-fluid m-0 p-1">
                 <div class="container-fluid m-0 p-1 mb-2 border shadow d-flex" style="align-items:center;justify-content:space-between;letter-spacing:3px;">
-                    <h4 class="m-0 p-0 px-2 fw-bold" id="table_title"></h4>
-                    <div class="container-fluid m-0 p-0 d-flex" style="width: 500px;flex-wrap:nowrap;">
-                        <label for="menu_category">FILTER CATEGORIES:</label>
-                        <select name="category" id="menu_category" style="letter-spacing: 3px;" class="form-control">
-                            <option value="all">All</option>
-                        </select>
+                    <h4 class="m-0 p-0 px-2 fw-bold" id="table_title" style="text-wrap:nowrap"></h4>
+                    <div style="width:100%;max-width:50vw;display:flex;gap:10px;">
+                        <div class="container-fluid m-0 p-0 d-flex" style="width:100%;min-width:200px;flex-wrap:nowrap;">
+                            <label for="menu_category" class="px-1">FILTER CATEGORIES</label>
+                            <select name="category" id="menu_category" style="letter-spacing: 3px;" class="form-control">
+                                <option value="all">All</option>
+                            </select>
+                        </div>
+                        <div class="container-fluid m-0 p-0 d-flex" style="width: 500px;flex-wrap:nowrap;">
+                            <input type="search" class="form-control" id="searchItemInput" placeholder="Search Item...">
+                        </div>
                     </div>
                 </div>
                 <div class="container-fluid m-0 p-0">
@@ -59,6 +108,7 @@
         </div>
     </div>
 </div>
+
 <!--Add item Modal -->
 <div class="modal fade" id="newItemModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
@@ -92,6 +142,16 @@
                 <div class="container-fluid m-0 p-0 my-2">
                     <label for="price" style="letter-spacing: 2px;">Price</label>
                     <input type="text" name="price" id="price" class="form-control border-secondary" placeholder="0.00">
+                </div>
+
+                <div class="container-fluid m-0 mt-3 p-1">
+                    <h5 class="m-0">Threshold</h5>
+                    <div class="container-fluid mt-2">
+                        <label for="max_input">Max Quantity <span style="opacity: 0.6;">default: [50]</span></label>
+                        <input type="number" min="1" class="form-control border border-secondary" id="max_input" value="50">
+                        <label for="warning_input">Warning Level <span style="opacity: 0.6;">default: [20]</span></label>
+                        <input type="number" min="1" class="form-control border border-secondary" id="warning_input" value="20">
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -146,7 +206,7 @@
 
 <!--Edit Info Modal -->
 <div class="modal fade" id="editInfoModal" tabindex="-1" aria-labelledby="exampleModalLabel" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addStockModalLabel">EDIT ITEM INFORMATION</h5>
@@ -155,7 +215,7 @@
             <div class="modal-body" id="modal_body">
                 <div class="container-fluid m-0 mb-2 p-0">
                     <label for="id_input">Item ID</label>
-                    <input type="text" id="id_input" class="m-0 form-control text-center border-secondary" readonly>
+                    <input type="text" id="id_input" class="m-0 form-control text-center border-secondary" disabled>
                 </div>
                 <div class="container-fluid m-0 mb-2 p-0">
                     <label for="item_name_input">Name</label>
@@ -167,7 +227,7 @@
                 </div>
                 <div class="container-fluid m-0 p-0 my-2">
                     <label for="category" style="letter-spacing: 2px;">Category</label>
-                    <select id="edit_item_modal_category" class="form-control text-center border-secondary">
+                    <select id="edit_item_modal_category_select" class="form-control text-center border-secondary">
 
                     </select>
                     <div class="container-fluid p-1 px-2" id="edit_modal_other_input_container">
@@ -178,6 +238,16 @@
                 <div class="container-fluid m-0 mb-2 p-0">
                     <label for="item_price_input">Price</label>
                     <input type="text" id="item_price_input" class="m-0 form-control text-center border-secondary">
+                </div>
+
+                <div class="container-fluid m-0 mt-3 p-1">
+                    <h5 class="m-0">Threshold</h5>
+                    <div class="container-fluid mt-2">
+                        <label for="max_input">Max Quantity</label>
+                        <input type="number" min="1" class="form-control border border-secondary" id="max_input">
+                        <label for="warning_input">Warning Level</label>
+                        <input type="number" min="1" class="form-control border border-secondary" id="warning_input">
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -193,66 +263,166 @@
         var tableBody = $("#table_body");
         var tableTitle = $('#table_title');
         var categoryOption = $("#menu_category");
-
         var addItemModalCategory = $("#add_item_modal_category");
 
         function fetchMenuCategory() {
-            $.ajax({
-                type: "GET",
-                url: "{{ route('fetch-menu.admin') }}",
-                success: function(data) {
+            const getItemsCategoriesRoute = "{{ route('fetch-categories.admin') }}";
 
-                    if (data.category.length > 0) {
-                        data.category.forEach(function(row) {
-                            categoryOption.append("<option value='" + row + "'style='text-transform: capitalize;'>" + row + "</option>");
-                            addItemModalCategory.append("<option value='" + row + "'style='text-transform: capitalize;'>" + row + "</option>");
-                        });
-                        addItemModalCategory.append("<option value='other'>Other</option>");
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.log(xhr.responseText);
-                }
+            $.getScript("{{ asset('js/itemsModule.js') }}", () => {
+                getItemsCategories(getItemsCategoriesRoute)
+                    .then((data) => {
+                        if (data.length > 0) {
+                            data.forEach(function(row) {
+                                categoryOption.append("<option value='" + row + "'style='text-transform: capitalize;'>" + row + "</option>");
+                                addItemModalCategory.append("<option value='" + row + "'style='text-transform: capitalize;'>" + row + "</option>");
+                            });
+                            addItemModalCategory.append("<option value='other'>Other</option>");
+                        }
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                    });
             });
         }
 
-        fetchMenuCategory();
+        function itemRowDisplay(itemInfo) {
 
-        function fetchMenu() {
-            $.ajax({
-                type: "GET",
-                url: "{{ route('fetch-menu.admin') }}",
-                success: function(data) {
+            const {
+                item_id,
+                name,
+                description,
+                category,
+                price,
+                quantity,
+                max_level,
+                warning_level
+            } = itemInfo;
 
-                    tableTitle.text("ON THE MENU")
-                    if (data.menu.length > 0) {
-                        data.menu.forEach(function(row) {
+            var tableRow = $("<tr class=''><td class='border'>" + item_id + "</td><td class='border'>" + name + "</td><td class='border'>" + description + "</td><td class='border'>" + category + "</td><td class='border'>" + price + "</td><td class='border'>" + quantity + "</td>");
+            var buttonColumn = $("<td class='border' id='buttons_column'><button data-bs-toggle='modal' class='edit_item_info_button' data-bs-target='#editInfoModal' data-item-id='" + item_id + "' data-item-name='" + name + "' data-item-description='" + description + "' data-item-category='" + category + "' data-item-price='" + price + "' data-item-max='" + max_level + "' data-item-warning='" + warning_level + "'>Edit info</button> \
+            <button class='remove_item_button' data-item-id='" + item_id + "'>Remove item</button></td></tr>");
+            var addButtonColumn = "<button class='add_stock_button' data-bs-toggle='modal' data-bs-target='#addStockModal' data-item-id='" + item_id + "' data-item-name='" + name + "' data-item-category='" + category + "' data-item-quantity='" + quantity + "'>Update stock</button>";
 
-                            if (row.quantity == null) {
-                                row.quantity = 0;
-                            }
+            tableBody.append(tableRow);
+            tableRow.append(buttonColumn);
+            buttonColumn.prepend(addButtonColumn);
+        }
 
-                            var tableRow = $("<tr class=''><td class='border'>" + row.item_id + "</td><td class='border'>" + row.name + "</td><td class='border'>" + row.description + "</td><td class='border'>" + row.category + "</td><td class='border'>" + row.price + "</td><td class='border'>" + row.quantity + "</td>");
-                            var buttonColumn = $("<td class='border' id='buttons_column'><button data-bs-toggle='modal' class='edit_item_info_button' data-bs-target='#editInfoModal' data-item-id='" + row.item_id + "' data-item-name='" + row.name + "' data-item-description='" + row.description + "' data-item-category='" + row.category + "' data-item-price='" + row.price + "'>Edit info</button><button class='remove_item_button' data-item-id='" + row.item_id + "'>Remove item</button></td></tr>");
-                            var addButtonColumn = "<button class='add_stock_button' data-bs-toggle='modal' data-bs-target='#addStockModal' data-item-id='" + row.item_id + "' data-item-name='" + row.name + "' data-item-category='" + row.category + "' data-item-quantity='" + row.quantity + "'>Update stock</button>";
+        function fetchItem() {
+            const getItemsRoute = "{{ route('fetch-items.admin') }}";
+            $.getScript("{{ asset('js/itemsModule.js') }}", () => {
+                getItems(getItemsRoute)
+                    .then((data) => {
+                        tableTitle.text("Has Stock Items")
+                        if (data.length > 0) {
+                            data.forEach(function(row) {
 
-                            tableBody.append(tableRow);
-                            tableRow.append(buttonColumn);
-                            buttonColumn.prepend(addButtonColumn);
-                        });
+                                if (row.quantity == null) {
+                                    row.quantity = 0;
+                                }
 
-                    } else {
-                        tableBody.append("<tr><td colspan='6'>No item on the menu...</td></tr>");
-                    }
-                    // tableBody.append("<tr><td>" + data[0].item_id + "</td></tr>")
-                },
-                error: function(xhr, status, error) {
-                    console.log(xhr.responseText);
-                },
+                                var itemInfo = {
+                                    item_id: row.item_id,
+                                    name: row.name,
+                                    description: row.description,
+                                    category: row.category,
+                                    price: row.price,
+                                    quantity: row.quantity,
+                                    max_level: row.max_level,
+                                    warning_level: row.warning_level
+                                }
+
+                                itemRowDisplay(itemInfo);
+                            });
+
+                        } else {
+                            tableBody.append("<tr><td colspan='7'>No item...</td></tr>");
+                        }
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                    });
             });
         }
 
-        fetchMenu();
+        function filterStock(range) {
+            const filterStockByRangeRoute = "{{ route('filter-stock-by-range.admin') }}";
+
+            $.getScript("{{ asset('js/itemStockModule.js') }}", () => {
+                filterStockByRange(filterStockByRangeRoute, range)
+                    .then((data) => {
+                        tableBody.empty();
+                        if (data.length > 0) {
+                            data.forEach(function(row) {
+
+                                if (row.quantity == null) {
+                                    row.quantity = 0;
+                                }
+
+                                var itemInfo = {
+                                    item_id: row.item_id,
+                                    name: row.name,
+                                    description: row.description,
+                                    category: row.category,
+                                    price: row.price,
+                                    quantity: row.quantity,
+                                    max_level: row.max_level,
+                                    warning_level: row.warning_level
+                                }
+
+                                itemRowDisplay(itemInfo);
+                            });
+
+                        } else {
+                            tableBody.append("<tr><td colspan='7'>No item on the menu...</td></tr>");
+                        }
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                    });
+            });
+        }
+
+        $('#menu_category').on('change', function() {
+            $("#searchItemInput").val("");
+            var category = $(this).val();
+
+            $.getScript("{{ asset('js/itemsModule.js') }}", () => {
+                const getItemsByCategoriesRoute = "{{ route('filter-item-by-category.admin') }}";
+                getItemsByCategories(getItemsByCategoriesRoute, category)
+                    .then((data) => {
+                        tableTitle.text(category == "all" ? "ALL" : category);
+                        if (data.length > 0) {
+                            tableBody.empty();
+                            data.forEach(function(row) {
+
+                                if (row.quantity == null) {
+                                    row.quantity = 0;
+                                }
+
+                                var itemInfo = {
+                                    item_id: row.item_id,
+                                    name: row.name,
+                                    description: row.description,
+                                    category: row.category,
+                                    price: row.price,
+                                    quantity: row.quantity,
+                                    max_level: row.max_level,
+                                    warning_level: row.warning_level
+                                }
+
+                                itemRowDisplay(itemInfo);
+                            });
+
+                        } else {
+                            tableBody.append("<tr><td colspan='6'>No item on the menu...</td></tr>");
+                        }
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                    });
+            });
+        });
 
         function resetModal() {
             $("#name").val("");
@@ -273,6 +443,8 @@
             var itemPrice = $("#price").val();
             var addItemModalCategoryValue = $("#add_item_modal_category").val();
             var otherCategoryInput = $("#other_category_input").val();
+            var maxQuantity = $("#max_input").val();
+            var warningLevel = $("#warning_input").val();
 
             if (addItemModalCategoryValue === "other") {
                 itemCategory = otherCategoryInput;
@@ -280,27 +452,31 @@
                 itemCategory = addItemModalCategoryValue;
             }
 
+            const createNewItemRoute = "{{ route('save-item.admin') }}";
+
             if (itemName != "" && itemDescription != "" && itemCategory != "" && itemPrice != "") {
-                $.ajax({
-                    type: "POST",
-                    url: "{{ route('save-item.admin') }}",
-                    data: {
-                        item_name: itemName,
-                        item_description: itemDescription,
-                        item_category: itemCategory,
-                        item_price: itemPrice,
-                        _token: $('meta[name="csrf-token"]').attr('content'),
-                    },
-                    success: function(data) {
-                        alert("Item Added successfully.");
-                        $("#newItemModal").modal("hide");
-                        $(".modal-backdrop").remove();
-                        resetModal();
-                        window.location.reload();
-                    },
-                    error: function(xhr, status, error) {
-                        console.log(xhr.responseText);
-                    }
+                $.getScript("{{ asset('js/itemsModule.js') }}", function() {
+                    createNewItem(
+                            createNewItemRoute,
+                            itemName,
+                            itemDescription,
+                            itemCategory,
+                            itemPrice,
+                            maxQuantity,
+                            warningLevel
+                        )
+                        .then((response) => {
+                            if (response) {
+                                alert("Item Added successfully.");
+                                $("#newItemModal").modal("hide");
+                                $(".modal-backdrop").remove();
+                                resetModal();
+                                window.location.reload();
+                            }
+                        })
+                        .catch((error) => {
+                            console.error(error);
+                        });
                 });
             } else {
                 alert("Please fill all the inputs.");
@@ -324,47 +500,6 @@
             } else {
                 $("#other_input_container").css('display', 'none');
             }
-        });
-
-        $('#menu_category').on('change', function() {
-            var categoryValue = $(this).val();
-
-            $.ajax({
-                type: "GET",
-                url: "{{ route('filter-menu.admin') }}",
-                data: {
-                    category_value: categoryValue,
-                },
-                success: function(data) {
-                    console.log(data);
-                    tableBody.empty();
-
-                    categoryValue = categoryValue.toUpperCase();
-                    tableTitle.text(categoryValue + " ON THE MENU");
-
-                    if (data.length > 0) {
-                        data.forEach(function(row) {
-                            if (row.quantity == null) {
-                                row.quantity = 0;
-                            }
-
-                            var tableRow = $("<tr class=''><td class='border'>" + row.item_id + "</td><td class='border'>" + row.name + "</td><td class='border'>" + row.description + "</td><td class='border'>" + row.category + "</td><td class='border'>" + row.price + "</td><td class='border'>" + row.quantity + "</td>");
-                            var buttonColumn = $("<td class='border' id='buttons_column'><button data-bs-toggle='modal'  class='edit_item_info_button' data-bs-target='#editInfoModal' data-item-id='" + row.item_id + "' data-item-name='" + row.name + "' data-item-description='" + row.description + "' data-item-category='" + row.category + "' data-item-price='" + row.price + "'>Edit info</button><button class='remove_item_button' data-item-id='" + row.item_id + "'>Remove item</button></td></tr>");
-                            var addButtonColumn = "<button class='add_stock_button' data-bs-toggle='modal' data-bs-target='#addStockModal' data-item-id='" + row.item_id + "' data-item-name='" + row.name + "' data-item-category='" + row.category + "' data-item-quantity='" + row.quantity + "'>Update stock</button>";
-
-                            tableBody.append(tableRow);
-                            tableRow.append(buttonColumn);
-                            buttonColumn.prepend(addButtonColumn);
-                        });
-                    } else {
-                        tableBody.append("<tr><td colspan='7'>No item in this category...</td></tr>");
-                    }
-
-                },
-                error: function(xhr, status, error) {
-                    console.log(xhr.responseText);
-                }
-            });
         });
 
         $("#stocks_button").on("click", function() { //redirect to stocks view 
@@ -407,44 +542,45 @@
             allModalInput.each(function() {
                 $(this).val("");
             });
+
+            const editModalOtherCategoryContainer = $("#edit_modal_other_input_container");
+            editModalOtherCategoryContainer.css('display', 'none');
         });
 
         // Click event handler for the "Update Stock" button in the modal
         $("#update_stock_modal_button").on('click', function() {
             if (confirm("Do you want to add this quantity to this item stocks?")) {
-                var itemIdValue = $("#item_id_input").val();
-                var quantityValue = $("#stock_quantity_input").val();
-                const operationValue = $("input[name='operation']:checked").val();
+                var itemId = $("#item_id_input").val();
+                var quantity = $("#stock_quantity_input").val();
+                const operation = $("input[name='operation']:checked").val();
 
-                if (quantityValue !== "") {
-                    quantityValue = parseInt(quantityValue);
+                if (quantity !== "") {
+                    quantity = parseInt(quantity);
 
-                    // AJAX call to update item stock
-                    $.ajax({
-                        type: "post",
-                        url: "{{ route('add-item-stock.admin') }}",
-                        data: {
-                            item_id_value: itemIdValue,
-                            quantity_value: quantityValue,
-                            operation_value: operationValue,
-                            _token: $('meta[name="csrf-token"]').attr('content'),
-                        },
-                        success: function(data) {
-                            // Handle different success outcomes
-                            if (data == true) {
-                                window.location.reload();
-                            } else if (data == false) {
-                                alert('Oops! Failed to update stock!');
-                                window.location.reload();
-                            } else if (data == "no stock") {
-                                alert('Oops! You cannot remove quantity because item has no stocks!');
-                            } else {
-                                alert('Oops! Current quantity is insufficient to deduct the quantity!');
-                            }
-                        },
-                        error: function(xhr, status, error) {
-                            console.log(xhr.responseText);
-                        }
+                    $.getScript("{{ asset('js/itemStockModule.js') }}", () => {
+                        const updateItemStockRoute = "{{ route('add-item-stock.admin') }}";
+                        updateItemStock(updateItemStockRoute, itemId, quantity, operation)
+                            .then((response) => {
+                                // console.log(response);
+                                switch (response) {
+                                    case true:
+                                        alert("Item ID [" + itemId + "] stock is successfully updated.");
+                                        window.location.reload();
+                                        break;
+                                    case false:
+                                        alert('Oops! Failed to update stock!');
+                                        break;
+                                    case "no_stock":
+                                        alert('Oops! You cannot remove quantity because item has no stocks!');
+                                        break;
+                                    case "insufficient":
+                                        alert('Oops! Current quantity is insufficient to deduct the quantity!');
+                                        break;
+                                }
+                            })
+                            .catch((error) => {
+                                console.error(error);
+                            });
                     });
                 } else {
                     alert("Please enter quantity!");
@@ -458,35 +594,38 @@
             var itemDescription = $(this).data("item-description");
             var itemCategory = $(this).data("item-category");
             var itemPrice = $(this).data("item-price");
+            const editItemModalCategorySelect = $("#edit_item_modal_category_select");
 
-            $("#edit_item_modal_category").empty();
+            editItemModalCategorySelect.empty();
 
             $("#id_input").val(itemId);
             $("#item_name_input").val(itemName);
             $("#item_description_input").val(itemDescription);
-            $("#edit_item_modal_category").append('<option value="">' + itemCategory + '</option>');
-            $("#item_price_input").val(itemPrice);
+            editItemModalCategorySelect.append('<option value="' + itemCategory + '">' + itemCategory + '</option>');
 
-            $.ajax({
-                type: "GET",
-                url: "{{ route('fetch-menu.admin') }}",
-                success: function(data) {
-                    var editItemModalCategorySelect = $("#edit_item_modal_category")
-                    if (data.category.length > 0) {
-                        data.category.forEach(function(row) {
-                            editItemModalCategorySelect.append("<option value='" + row + "' >" + row + "</option>");
-                        });
-                        editItemModalCategorySelect.find("option[value='" + itemCategory + "']").remove();
-                        editItemModalCategorySelect.append("<option value='other'>Other</option>");
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.log(xhr.responseText);
-                }
+            $.getScript("{{ asset('js/itemsModule.js') }}", function() {
+                var getItemsCategoriesRoute = "{{ route('fetch-categories.admin') }}";
+                getItemsCategories(getItemsCategoriesRoute)
+                    .then((data) => {
+                        if (data.length > 0) {
+                            const filteredCategories = data.filter(category => category !== itemCategory);
+
+                            filteredCategories.forEach((category) => {
+                                editItemModalCategorySelect.append('<option value="' + category + '">' + category + '</option>');
+                            });
+
+                            editItemModalCategorySelect.append("<option value='other'>Other</option>");
+                        }
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                    });
             });
+
+            $("#item_price_input").val(itemPrice);
         });
 
-        $("#edit_item_modal_category").on("change", function() {
+        $("#edit_item_modal_category_select").on("change", function() {
             var selectValue = $(this).val();
 
             if (selectValue === "other") {
@@ -497,39 +636,38 @@
         });
 
         $("#update_item_info_modal_button").on("click", function() {
+            const itemCategorySelectInput = $("#edit_item_modal_category_select");
             var itemId = $("#id_input").val();
             var itemName = $("#item_name_input").val();
             var itemDescription = $("#item_description_input").val();
-            var itemCategory = $("#edit_item_modal_category").val();
-            var editModalOtherCategoryInput = $("#edit_modal_other_category_input").val();
+            var itemCategory = itemCategorySelectInput.val();
+            var OtherCategoryValue = $("#edit_modal_other_category_input").val();
             var itemPrice = $("#item_price_input").val();
 
             if (itemCategory === "other") {
-                itemCategory = editModalOtherCategoryInput;
+                itemCategory = OtherCategoryValue;
             }
 
-            $.ajax({
-                type: "post",
-                url: "{{ route('update-item-info.admin') }}",
-                data: {
-                    item_id: itemId,
-                    item_name: itemName,
-                    item_description: itemDescription,
-                    item_category: itemCategory,
-                    item_price: itemPrice,
-                    _token: $("meta[name='csrf-token']").attr("content"),
-                },
-                success: function(data) {
-                    if (data === true) {
-                        alert("Item id [" + itemId + "] is successfully updated!");
-                        window.location.reload();
-                    } else {
-                        alert("Sorry, failed to update item id [" + itemId + "] information.");
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.log(xhr.responseText);
-                }
+            $.getScript("{{ asset('js/itemsModule.js') }}", function() {
+                const updateItemInformationRoute = "{{ route('update-item-info.admin') }}";
+
+                updateItemInformation(
+                        updateItemInformationRoute,
+                        itemId,
+                        itemName,
+                        itemDescription,
+                        itemCategory,
+                        itemPrice
+                    )
+                    .then((response) => {
+                        if (response) {
+                            alert(itemName + " information is successfully updated.");
+                            window.location.reload();
+                        }
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                    });
             });
         });
 
@@ -537,27 +675,102 @@
             var itemId = $(this).data("item-id");
 
             if (confirm("Do you want to delete this item id [" + itemId + "]?\nThis will delete permanently in database.")) {
-                $.ajax({
-                    type: "post",
-                    url: "{{ route('delete-item-info.admin') }}",
-                    data: {
-                        item_id: itemId,
-                        _token: $("meta[name='csrf-token']").attr("content"),
-                    },
-                    success: function(data) {
-                        if (data === true) {
+                const deleteItemInformationRoute = "{{ route('delete-item-info.admin') }}";
+                deleteItemInformation(deleteItemInformationRoute, itemId)
+                    .then((response) => {
+                        if (response === true) {
                             alert("Item successfully deleted to database");
                             window.location.reload();
                         } else {
                             alert("Sorry, failed to delete the item id [" + itemId + "]");
                         }
-                    },
-                    error: function(xhr, status, error) {
-                        console.log(xhr.responseText);
-                    }
-                });
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                    });
             }
         });
+
+        $("#searchItemInput").on("input", function() {
+            $("#menu_category").val("all");
+            $("#menu_category").prop("selectedIndex", 0);
+            tableTitle.text("ALL");
+
+            var itemName = $(this).val();
+            const searchItemByNameRoute = "{{ route('search-item-name.admin') }}";
+            $.getScript("{{ asset('js/itemsModule.js') }}", () => {
+                searchItemByName(itemName, searchItemByNameRoute)
+                    .then((data) => {
+                        tableBody.empty();
+                        if (data.length > 0) {
+                            data.forEach(function(row) {
+
+                                if (row.quantity == null) {
+                                    row.quantity = 0;
+                                }
+
+                                var itemInfo = {
+                                    item_id: row.item_id,
+                                    name: row.name,
+                                    description: row.description,
+                                    category: row.category,
+                                    price: row.price,
+                                    quantity: row.quantity,
+                                    max_level: row.max_level,
+                                    warning_level: row.warning_level
+                                }
+
+                                itemRowDisplay(itemInfo);
+                            });
+
+                        } else {
+                            tableBody.append("<tr><td colspan='7'>No item on the menu...</td></tr>");
+                        }
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                    });
+            });
+        });
+
+
+        $("#overmax_box").on("click", function() {
+            var value = $(this).data('value');
+
+            tableTitle.text("Over Max Items");
+            filterStock(value);
+        });
+
+        $("#safe_box").on("click", function() {
+            var value = $(this).data('value');
+
+            tableTitle.text("Safe Items");
+            filterStock(value);
+        });
+
+        $("#warning_box").on("click", function() {
+            var value = $(this).data('value');
+
+            tableTitle.text("Warning Items");
+            filterStock(value);
+        });
+
+        $("#no_stock_box").on("click", function() {
+            var value = $(this).data('value');
+
+            tableTitle.text("No Stock Items");
+            filterStock(value);
+        });
+
+        $("#has_stock_box").on("click", function() {
+            var value = $(this).data('value');
+
+            tableTitle.text("Has Stock Items");
+            filterStock(value);
+        });
+
+        fetchMenuCategory();
+        fetchItem();
     });
 </script>
 @endsection

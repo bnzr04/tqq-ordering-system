@@ -96,7 +96,7 @@
                         <button class="rounded-1">&nbsp;</button>
                     </section>
                     <div class="container-fluid m-0 p-1 border">
-                        <input type="text" id="search_item_input" placeholder="Search menu..." class="form-control">
+                        <input type="search" id="search_item_input" placeholder="Search menu..." class="form-control">
                     </div>
                     <div class="container-fluid m-0 border m-0 p-0" id="menu_result">
                         <table class="table table-striped table-dark">
@@ -151,6 +151,61 @@
         </div>
     </div>
 </div>
+
+<!-- Payment Modal -->
+<div class="modal fade" id="paymentModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="paymentModalLabel" style="letter-spacing: 3px;">PAYMENT</h5>
+                <button type="button" class="btn-close" id="resetPaymentModal" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="container-fluid m-0 p-1">
+                    <div class="container-fluid m-0 p-0" style="letter-spacing: 2px;">
+                        <input type="number" id="paymentModalOrderIdInput" class="form-control mb-2 border border-secondary text-center" style="letter-spacing: 2px;" disabled>
+                        <h4>Total Amount</h4>
+                        <h5 class="text-center">P <span id="amountDisplay">-</span></h5>
+                    </div>
+                    <div class="container-fluid m-0 mt-4 p-0">
+                        <label for="cashInput">
+                            <h5>Cash</h5>
+                        </label>
+                        <input type="number" min="1" id="cashInput" class="form-control border border-secondary text-center" style="letter-spacing: 2px;">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="reset">Cancel</button>
+                <button type="button" class="btn btn-dark" id="proceedButton">Proceed</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Modal -->
+<div class="modal fade" id="changeModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" id="resetPaymentModal" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="container-fluid m-0 p-1">
+                    <div class="container-fluid m-0 p-0" style="letter-spacing: 2px;">
+                        <h4>Change</h4>
+                        <h5 class="text-center">P <span id="changeDisplay">-</span></h5>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark" data-bs-dismiss="modal">Done</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="module" src="{{ asset('js/payment.js') }}"></script>
+<script type="module" src="{{ asset('js/itemsModule.js') }}"></script>
 <script>
     $(document).ready(function() {
         const radioContainer = $("#radio-container");
@@ -159,31 +214,26 @@
         const orderId = $("#order-id");
         const tableNumberInput = $("#table-number-input");
         const ordersBox = $("#orders-box");
-
         const searchItemInput = $('#search_item_input');
-
         const menuResultTable = $('#menu_result_table');
         const menuResultHead = $("#menu_result_head");
-
         const menuCategorySelector = $('#menu_category_selector');
-
         var totalAmount = 0.00;
-
         var orderIdValue = 0;
-
         var nextDailyOrderId = 0
+        var orderedItems = [];
+        var isSubmitting = false;
+        const paymentModal = $("#paymentModal");
+        const changeModal = $("#changeModal");
 
-        function showNextOrderId() { //this function will show the next order id
+        function getNextDailyOrderId() {
             $.ajax({
                 type: "GET",
                 url: "{{ route('next-order-id.admin') }}",
                 success: function(data) {
-                    // console.log(data);
-
-                    orderIdValue = data.next_order_id; //store the data value which container the next order id
-
-                    orderId.text(data.daily_order_id); //display the orderIdValue
-                    nextDailyOrderId = data.daily_order_id; //set the value of orderIdValue
+                    orderIdValue = data.next_order_id;
+                    orderId.text(data.daily_order_id);
+                    nextDailyOrderId = data.daily_order_id;
                 },
                 error: function(xhr, status, error) {
                     console.log(xhr.responseText);
@@ -191,166 +241,151 @@
             });
         }
 
-        showNextOrderId(); //excecute the function
+        function displaySearchedItemByName(itemName) {
+            const searchItemByNameRoute = "{{ route('search-item-name.admin') }}";;
+            $.getScript("{{ asset('js/itemsModule.js') }}", () => {
+                searchItemByName(itemName, searchItemByNameRoute)
+                    .then((data) => {
+                        menuResultTable.html('');
+                        if (data.length > 0) {
+                            menuResultHead.html('');
+                            data.forEach(function(row) {
+                                if (row.quantity == null) {
+                                    row.quantity = 0;
+                                }
 
-        searchItemInput.on('input', function() { //this function will search the item by name typing
-            var inputValue = $(this).val();
+                                menuResultTable.append("<tr id='item_row'><td class='border'>" + row.name + "  /  " + row.category + "  /  " + row.price + "  /  [" + row.quantity + "]</td><td class='border'><input type='number' min='1' id='item_quantity' style='width:70px'><button id='add_item_button' class='add_item_button' data-id='" + row.item_id + "'  data-name='" + row.name + "'  data-description='" + row.description + "' data-category='" + row.category + "' data-price='" + row.price + "' data-quantity='" + row.quantity + "'>ADD</button></td></tr>");
+                            });
+                        } else {
+                            menuResultTable.append("<tr><td colspan='2'>No result...</td></tr>")
+                        }
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                    });
+            });
+        }
 
+        function postOrder(dailyOrderId, orderType, tableNumber, paymentStatus) {
             $.ajax({
-                type: 'GET',
-                url: "{{ route('search-item-name.admin') }}",
+                type: 'POST',
+                url: "{{ route('submit-order.admin') }}",
                 data: {
-                    item_name: inputValue,
+                    order_id: orderIdValue,
+                    daily_order_id: dailyOrderId,
+                    order_type: orderType,
+                    payment_status: paymentStatus,
+                    table_number: tableNumber,
+                    order_items: orderedItems,
+                    total_bill: totalAmount,
+                    _token: $('meta[name="csrf-token"]').attr('content'),
                 },
                 success: function(data) {
-                    // console.log(data);
-                    menuResultTable.html('');
+                    if (data.response == true) {
+                        orderId.text(dailyOrderId);
+                        radioContainer.find(":radio").prop("disabled", true);
+                        tableNumberInput.prop('disabled', true);
+                        makeOrderBtn.prop('disabled', true);
+                        makeOrderBtn.text('In Queue');
+                        newOrderBtn.css('display', 'block');
+                        $('#orders-box').find('.remove_item_button').prop('disabled', true);
+                        menuResultTable.find('.add_item_button').prop('disabled', true);
+                        menuResultTable.find('input').prop('disabled', true);
+                        menuCategorySelector.find('button').prop('disabled', true);
+                        searchItemInput.prop('disabled', true);
+                        $(".decrement_added_button").prop('disabled', true);
+                        $(".increment_added_button").prop('disabled', true);
 
-                    if (data.length > 0) {
-                        menuResultHead.html('');
-                        data.forEach(function(row) {
-                            if (row.quantity == null) {
-                                row.quantity = 0;
-                            }
-
-                            menuResultTable.append("<tr id='item_row'><td class='border'>" + row.name + "  /  " + row.category + "  /  " + row.price + "  /  [" + row.quantity + "]</td><td class='border'><input type='number' min='1' id='item_quantity' style='width:70px'><button id='add_item_button' class='add_item_button' data-id='" + row.item_id + "'  data-name='" + row.name + "'  data-description='" + row.description + "' data-category='" + row.category + "' data-price='" + row.price + "' data-quantity='" + row.quantity + "'>ADD</button></td></tr>");
-                        });
-                    } else {
-                        menuResultTable.append("<tr><td colspan='2'>No result...</td></tr>")
+                        if (paymentModal.is(":visible")) {
+                            paymentModal.modal("hide");
+                        }
                     }
                 },
                 error: function(xhr, status, error) {
-                    console.log(chr.responseText);
+                    console.log(xhr.responseText);
+                },
+                complete: function() {
+                    makeOrderBtn.prop('disabled', true);
+                    isSubmitting = false;
                 }
-            });
-        });
+            })
+        }
 
-        newOrderBtn.on('click', function() { //if the new-order-btn is clicked the order page will reload
-            location.reload();
-        });
+        function showPaymentModal(dailyOrderId, orderType, tableNumber) {
+            var paymentStatus = $('input[name="payment_status"]:checked').val();
+            const cashInput = paymentModal.find("#cashInput");
+            const orderIdInput = paymentModal.find("#paymentModalOrderIdInput");
+            const proceedButton = paymentModal.find("#proceedButton");
 
-        var isSubmitting = false; // Flag variable to track form submission
+            paymentModal.modal('show');
+            paymentModal.find("#amountDisplay").text(totalAmount.toFixed(2));
+            orderIdInput.val(orderIdValue);
 
-        //this will execute if the make-order-btn is clicked
-        $("#make-order-btn").on("click", function() {
-            // console.log(totalAmount);
+            var cash = 0;
 
-            var dailyOrderId = parseInt(orderId.text())
-
-            // console.log(dailyOrderId)
-            var tableNumberValue = tableNumberInput.val(); //get the table number input value
-
-            var total = $('#total_amount_input').text();
-
-            if (tableNumberValue !== '') {
-                if (orderedItems.length > 0) {
-                    if (confirm('Do you want to send the order to kitchen?')) {
-                        if (isSubmitting) {
-                            return; // If form is already being submitted, ignore subsequent clicks
-                        }
-
-                        var orderType = $('input[name="order_type"]:checked').val();
-                        var paymentStatus = $('input[name="payment_status"]:checked').val();
-                        var tableNumber = $('#table-number-input').val();
-
-                        isSubmitting = true;
-
-                        $.ajax({
-                            type: 'POST',
-                            url: "{{ route('submit-order.admin') }}",
-                            data: {
-                                order_id: orderIdValue,
-                                daily_order_id: dailyOrderId,
-                                order_type: orderType,
-                                payment_status: paymentStatus,
-                                table_number: tableNumber,
-                                order_items: orderedItems,
-                                total_bill: totalAmount,
-                                _token: $('meta[name="csrf-token"]').attr('content'),
-                            },
-                            success: function(data) {
-                                if (data.response == true) {
-                                    orderId.text(dailyOrderId);
-                                    radioContainer.find(":radio").prop("disabled", true);
-                                    tableNumberInput.prop('disabled', true);
-                                    makeOrderBtn.prop('disabled', true);
-                                    makeOrderBtn.text('In Queue');
-                                    newOrderBtn.css('display', 'block');
-                                    $('#orders-box').find('.remove_item_button').prop('disabled', true);
-                                    menuResultTable.find('.add_item_button').prop('disabled', true);
-                                    menuResultTable.find('input').prop('disabled', true);
-                                    menuCategorySelector.find('button').prop('disabled', true);
-                                    searchItemInput.prop('disabled', true);
-                                }
-                            },
-                            error: function(xhr, status, error) {
-                                console.log(xhr.responseText);
-                            },
-                            complete: function() {
-                                makeOrderBtn.prop('disabled', true);
-                                isSubmitting = false; // Reset the flag variable
-                            }
-                        })
-                    }
-                } else {
-                    alert('Please add items!');
-                }
-            } else {
-                alert('Please enter a table number...');
+            if (cashInput.val() == "") {
+                proceedButton.prop('disabled', true);
             }
 
-        });
+            cashInput.on("input", function() {
+                cash = parseFloat($(this).val());
 
+                if (cash === "") {
+                    proceedButton.prop('disabled', true);
+                } else {
+                    proceedButton.prop('disabled', false);
+                }
 
-        $(document).on("click", ".menu_button", function() {
-            var categoryValue = $(this).data('category');
-            menuResultTable.empty();
-            menuResultHead.empty();
-            $("#search_item_input").val("");
+            });
 
+            proceedButton.on('click', function() {
+                var change = cash - totalAmount;
+                if (cash < totalAmount) {
+                    alert("Cash not enough!");
+                } else {
+                    if (confirm('Do you want to send the order to kitchen?')) {
+                        var generateReceiptRoute = "{{ route('generate-receipt') }}";
+                        var orderId = orderIdValue;
+                        alert("CHANGE: " + change);
+                        postOrder(dailyOrderId, orderType, tableNumber, paymentStatus);
+                        $.getScript("{{ asset('js/payment.js') }}", function() {
+                            generateReceipt(orderId, cash, change, generateReceiptRoute);
+                        });
+                        // showChangeModal(cash);
+                    }
+                }
+            });
+        }
+
+        function showChangeModal(cash) {
+            paymentModal.modal('hide');
+            changeModal.modal('show');
+
+            const changeDisplay = $('#changeDisplay');
+            const doneButton = changeModal.find('#doneButton');
+
+            var change = cash - totalAmount;
+
+            changeDisplay.text(change.toFixed(2));
+        }
+
+        function generateMenuButtons() {
             $.ajax({
                 type: "GET",
-                url: "{{ route('filter-menu.admin') }}",
-                data: {
-                    category_value: categoryValue,
-                },
+                url: "{{ route('fetch-categories.admin') }}",
                 success: function(data) {
+                    menuCategorySelector.empty();
                     if (data.length > 0) {
-                        menuResultHead.append('<tr style="position: sticky;top:0;"><th scope = "col" class = "border text-center">' + categoryValue + '</th><th scope = "col" class = "border"></th></tr>')
                         data.forEach(function(row) {
-                            if (row.quantity == null) {
-                                row.quantity = 0;
-                            }
-
-                            menuResultTable.append("<tr id='item_row'><td class='border'>" + row.name + "  /  " + row.category + "  /  " + row.price + " / [" + row.quantity + "]</td><td class='border'><input type='number' min='1' id='item_quantity' style='width:70px'><button id='add_item_button' class='add_item_button' data-id='" + row.item_id + "'  data-name='" + row.name + "'  data-description='" + row.description + "' data-category='" + row.category + "' data-price='" + row.price + "' data-quantity='" + row.quantity + "' >ADD</button></td></tr>");
+                            menuCategorySelector.append("<button class='rounded-1 menu_button' data-category='" + row + "'>" + row + "</button>");
                         });
-                    } else {
-                        menuResultTable.append("<tr><td colspan='1' class='border'>No result...</tr>");
                     }
                 },
                 error: function(xhr, status, error) {
                     console.log(xhr.responseText);
                 }
             });
-        });
-
-        $.ajax({
-            type: "GET",
-            url: "{{ route('fetch-menu.admin') }}",
-            success: function(data) {
-                menuCategorySelector.empty();
-                if (data.category.length > 0) {
-                    data.category.forEach(function(row) {
-                        menuCategorySelector.append("<button class='rounded-1 menu_button' data-category='" + row + "'>" + row + "</button>");
-                    });
-                }
-            },
-            error: function(xhr, status, error) {
-                console.log(xhr.responseText);
-            }
-        });
-
-        var orderedItems = []; //initiate orderedItems array
+        }
 
         function incrementQuantityOfItemOrder(itemId, itemRow, itemQuantity) {
             itemQuantity = parseInt(itemQuantity);
@@ -366,7 +401,92 @@
             $('#total_amount_input').text(totalAmount.toFixed(2));
         }
 
-        //if add item is clicked
+        /////////////////////////
+        /////Buttons events//////
+        /////////////////////////
+
+        makeOrderBtn.on("click", function() {
+            var dailyOrderId = parseInt(orderId.text());
+            var orderType = $('input[name="order_type"]:checked').val();
+            var paymentStatus = $('input[name="payment_status"]:checked').val();
+            var tableNumberValue = tableNumberInput.val();
+            var total = $('#total_amount_input').text();
+            var tableNumber = null;
+            var isPaid = false;
+
+            if (orderedItems.length > 0) {
+                if (orderType == 'dine-in') {
+                    if (tableNumberValue == '') {
+                        alert("Please enter table number...");
+                    } else {
+                        tableNumber = tableNumberValue;
+                    }
+                }
+
+                if (paymentStatus == "paid") {
+                    isPaid = true;
+                } else {
+                    isPaid = false;
+                }
+
+                if (orderType == 'dine-in' && tableNumberValue !== "" || orderType == 'take-out') {
+                    if (isPaid) {
+                        showPaymentModal(dailyOrderId, orderType, tableNumber);
+                    } else {
+                        if (confirm('Do you want to send the order to kitchen?')) {
+                            postOrder(dailyOrderId, orderType, tableNumber, paymentStatus);
+                        }
+                    }
+                }
+            } else {
+                alert("No ordered items...");
+            }
+        });
+
+        searchItemInput.on('input', function() {
+            var inputValue = $(this).val();
+
+            displaySearchedItemByName(inputValue);
+        });
+
+        newOrderBtn.on('click', function() {
+            location.reload();
+        });
+
+        paymentModal.on('click', '#reset', function() {
+            var cashInput = $(this).parent().siblings(".modal-body").find("#cashInput");
+            cashInput.val('');
+        });
+
+        $(document).on("click", ".menu_button", function() {
+            var category = $(this).data('category');
+            menuResultTable.empty();
+            menuResultHead.empty();
+            $("#search_item_input").val("");
+
+            $.getScript("{{ asset('js/itemsModule.js') }}", () => {
+                const getItemsByCategoriesRoute = "{{ route('filter-item-by-category.admin') }}";
+                getItemsByCategories(getItemsByCategoriesRoute, category)
+                    .then((data) => {
+                        if (data.length > 0) {
+                            menuResultHead.append('<tr style="position: sticky;top:0;"><th scope = "col" class = "border text-center">' + category + '</th><th scope = "col" class = "border"></th></tr>')
+                            data.forEach(function(row) {
+                                if (row.quantity == null) {
+                                    row.quantity = 0;
+                                }
+
+                                menuResultTable.append("<tr id='item_row'><td class='border'>" + row.name + "  /  " + row.category + "  /  " + row.price + " / [" + row.quantity + "]</td><td class='border'><input type='number' min='1' id='item_quantity' style='width:70px'><button id='add_item_button' class='add_item_button' data-id='" + row.item_id + "'  data-name='" + row.name + "'  data-description='" + row.description + "' data-category='" + row.category + "' data-price='" + row.price + "' data-quantity='" + row.quantity + "' >ADD</button></td></tr>");
+                            });
+                        } else {
+                            menuResultTable.append("<tr><td colspan='1' class='border'>No result...</tr>");
+                        }
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                    })
+            });
+        });
+
         menuResultTable.on('click', '.add_item_button', function() {
 
             var itemQuantity = $(this).parent().find('#item_quantity').val();
@@ -415,7 +535,7 @@
 
                         $('#total_amount_input').text(totalAmount.toFixed(2));
 
-                        ordersBox.append('<div class="container-fluid m-0 p-1 border" id="item_box" style="display: flex;align-items:center;"><p class="m-0">' + itemName + ' / ' + category + ' / P ' + price + '</p><div class="m-0 mx-1 p-0 border" id="count-container"><input id="ordered_item_quantity" data-id="' + itemId + '" type="text" min="1" style="width: 60px;text-align:center;" readonly value="' + itemQuantity + '"></div><div class="m-0 p-0 border"><button>-</button><button>+</button><button id="remove_item_button" class="remove_item_button ms-1" data-id="' + itemId + '">X</button></div></div>');
+                        ordersBox.append('<div class="container-fluid m-0 p-1 border" id="item_box" style="display: flex;align-items:center;"><p class="m-0">' + itemName + ' / ' + category + ' / P ' + price + '</p><div class="m-0 mx-1 p-0 border" id="count-container"><input id="ordered_item_quantity" data-id="' + itemId + '" type="text" min="1" style="width: 60px;text-align:center;" readonly value="' + itemQuantity + '"></div><div class="m-0 p-0 border"><button class="decrement_added_button" data-item-id="' + itemId + '">-</button><button class="increment_added_button" data-item-id="' + itemId + '">+</button><button id="remove_item_button" class="remove_item_button ms-1" data-id="' + itemId + '">X</button></div></div>');
 
                     } else {
                         var itemRow = $('#item_box');
@@ -435,6 +555,64 @@
 
         });
 
+        ordersBox.on('click', '.decrement_added_button', function() {
+            const itemBox = $(this).parent().parent();
+            const addedQtyInput = $(this).parent().siblings('#count-container').find('#ordered_item_quantity');
+
+            var itemIdOfAddedItem = $(this).data('item-id');
+
+            var addedQty = parseInt(addedQtyInput.val());
+
+            var newQty = addedQty - 1;
+
+            addedQtyInput.val(newQty);
+
+            for (let i = 0; i < orderedItems.length; i++) {
+                if (orderedItems[i].id === itemIdOfAddedItem) {
+                    var itemPrice = orderedItems[i].price;
+                    var newQty = addedQty - 1;
+
+                    orderedItems[i].quantity = newQty;
+
+                    if (newQty < 1) {
+                        orderedItems = orderedItems.filter(function(item) {
+                            return item.id !== itemIdOfAddedItem;
+                        });
+
+                        itemBox.remove();
+                    }
+
+                    totalAmount -= parseFloat(itemPrice);
+
+                    addedQtyInput.val(newQty);
+                }
+            }
+
+            $('#total_amount_input').text(totalAmount.toFixed(2));
+        });
+
+        ordersBox.on('click', '.increment_added_button', function() {
+            const itemBox = $(this).parent().parent();
+            const addedQtyInput = $(this).parent().siblings('#count-container').find('#ordered_item_quantity');
+
+            var itemIdOfAddedItem = $(this).data('item-id');
+
+            var addedQty = parseInt(addedQtyInput.val());
+
+            for (let i = 0; i < orderedItems.length; i++) {
+                if (orderedItems[i].id === itemIdOfAddedItem) {
+                    var itemPrice = orderedItems[i].price;
+                    var newQty = addedQty + 1;
+
+                    orderedItems[i].quantity = newQty;
+
+                    totalAmount += parseFloat(itemPrice);
+
+                    addedQtyInput.val(newQty);
+                }
+            }
+            $('#total_amount_input').text(totalAmount.toFixed(2));
+        });
 
         //if the remove item button is clicked
         ordersBox.on('click', '#remove_item_button', function() {
@@ -446,12 +624,9 @@
                 }
             }
 
-
-
             totalAmount -= toSubtract; //subtract the value of toSubtract to the totalAmount value
 
-            $('#total_amount_input').text(totalAmount); //display the totalAmount value to the id = "total_amount_input" input
-
+            $('#total_amount_input').text(totalAmount.toFixed(2)); //display the totalAmount value to the id = "total_amount_input" input
 
             orderedItems = orderedItems.filter(function(item) {
                 return item.id !== itemId;
@@ -459,6 +634,9 @@
 
             $(this).closest('#item_box').remove();
         });
+
+        getNextDailyOrderId();
+        generateMenuButtons();
     });
 </script>
 @endsection

@@ -7,6 +7,8 @@ use App\Http\Controllers\LogController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ReceiptController;
+use App\Http\Controllers\SalesController;
 use App\Http\Controllers\StockController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -33,23 +35,31 @@ Route::middleware('guest')->group(function () {
     });
 });
 
+Route::middleware('auth')->group(function () {
+    Route::get('/generate-receipt', [ReceiptController::class, 'generateReceipt'])->name('generate-receipt');
+    Route::get('/print-receipt', [ReceiptController::class, 'printReceipt'])->name('print-receipt');
+});
+
 /*///////////
 ADMIN ROUTES
 */ //////////
+
 Route::prefix('admin')->middleware(['auth', 'user-access:admin'])->group(function () {
     //dashboard routes
     Route::get('/dashboard', [DashboardController::class, 'adminDashboard'])->name('dashboard.admin');
 
     //menu routes
     Route::get('/menu', [MenuController::class, 'index'])->name('menu.admin');
-    Route::get('/filter-menu', [MenuController::class, 'filterItemByCategory'])->name('filter-menu.admin');
-    Route::get('/fetch-menu', [MenuController::class, 'fetchItem'])->name('fetch-menu.admin');
+    Route::get('/filter-item-by-category', [MenuController::class, 'filterItemByCategory'])->name('filter-item-by-category.admin');
+    Route::get('/fetch-items', [MenuController::class, 'fetchItems'])->name('fetch-items.admin');
+    Route::get('/fetch-categories', [MenuController::class, 'fetchCategories'])->name('fetch-categories.admin');
     Route::post('/save-menu-item', [MenuController::class, 'saveItem'])->name('save-item.admin');
     Route::post('/update-item-info', [MenuController::class, 'updateItemInformation'])->name('update-item-info.admin');
-    Route::post('/delete-item-info', [MenuController::class, 'removeItemInformation'])->name('delete-item-info.admin');
+    Route::post('/delete-item-info', [MenuController::class, 'deleteItemInformation'])->name('delete-item-info.admin');
 
     //stocks routes
     Route::get('/stocks', [StockController::class, 'index'])->name('stocks.admin');
+    Route::get('/filter-stock-by-range', [StockController::class, 'filterStockByRange'])->name('filter-stock-by-range.admin');
     Route::get('/fetch-items-and-stocks', [StockController::class, 'fetchItemsAndStocks'])->name('fetch-items-and-stocks.admin');
     Route::post('/add-item-stock', [StockController::class, 'addOrRemoveStockQuantity'])->name('add-item-stock.admin');
 
@@ -76,6 +86,13 @@ Route::prefix('admin')->middleware(['auth', 'user-access:admin'])->group(functio
     //payment routes
     Route::get('/payment', [PaymentController::class, 'index'])->name('payment.admin');
     Route::get('/fetch-unpaid-orders', [PaymentController::class, 'fetchUnpaidOrders'])->name('fetch-unpaid-orders.admin');
+    Route::post('/make-order-paid', [PaymentController::class, 'markOrderAsPaid'])->name('make-order-paid.admin');
+
+    //sales routes
+    Route::get('/sales', [SalesController::class, 'index'])->name('sales.admin');
+    Route::get('/fetch-categories', [SalesController::class, 'fetchCategories'])->name('fetch-categories.admin');
+    Route::get('/fetch-sold-items', [SalesController::class, 'fetchSoldItems'])->name('fetch-sold-items.admin');
+    Route::get('/get-sales-amount', [SalesController::class, 'getTotalSales'])->name('get-sales-amount.admin');
 
     //logs routes
     Route::get('/logs', [LogController::class, 'index'])->name('logs.admin');

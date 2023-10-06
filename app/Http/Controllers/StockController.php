@@ -22,60 +22,113 @@ class StockController extends Controller
         return response()->json($itemAndStock);
     }
 
-    public function addOrRemoveStockQuantity(Request $request)
+    public function createNewStockForItem($itemId, $quantity, $operation)
     {
+        $item = Menu::find($itemId);
+        $itemStock = new Item_Stock();
+
         $log = new LogController();
         list($user_id, $user_type) = $log->startLog();
 
-        $itemId = $request->input('item_id_value');
-        $quantity = $request->input('quantity_value');
-        $operation = $request->input('operation_value');
-
-        $itemStockExist = Item_Stock::join('menu_items', 'item_stocks.menu_item_id', '=', 'menu_items.item_id')
-            ->where('menu_item_id', $itemId)
-            ->first();
-
-        if ($itemStockExist) {
-            $currentStockQuantity = $itemStockExist->quantity;
-
-            if ($operation == "add") {
-                $newStockQuantity = $currentStockQuantity + $quantity;
-                $activity = $itemStockExist->name . " / " . $itemStockExist->category . " added [" . $quantity . "]. New Quantity stock [" . $newStockQuantity . "].";
-            } else {
-                if ($quantity > $currentStockQuantity) {
-                    $response = "quantity is greater than";
-                    return response()->json($response);
-                } else {
-                    $newStockQuantity = $currentStockQuantity - $quantity;
-                    $activity = $itemStockExist->name . " / " . $itemStockExist->category . " deducted [" . $quantity . "]. New Quantity stock [" . $newStockQuantity . "].";
-                }
-            }
-
-            $itemStockExist->quantity = $newStockQuantity;
-
-            if ($itemStockExist->save()) {
+        if ($operation == "add") {
+            $itemStock->menu_item_id = $itemId;
+            $itemStock->quantity = $quantity;
+            if ($itemStock->save()) {
+                $activity = "Stock created for " . $item->name . " / " . $item->category . ". New Stock [" . $quantity . "].";
                 $log->endLog($user_id, $user_type, $activity);
                 $response = true;
             } else {
                 $response = false;
             }
         } else {
-            if ($operation == "remove") {
-                $response = "no stock";
-            } else {
-                $itemInfo = Menu::find($itemId);
+            $response = "no_stock";
+        }
 
-                $newStock = new Item_Stock();
-                $newStock->menu_item_id = $itemId;
-                $newStock->quantity = $quantity;
-                if ($newStock->save()) {
-                    $activity = "Stock created for " . $itemInfo->name . " / " . $itemInfo->category . ". New Stock [" . $quantity . "].";
-                    $log->endLog($user_id, $user_type, $activity);
-                    $response = true;
+        return $response;
+    }
+
+    public function addOrRemoveStockQuantity(Request $request)
+    {
+        $itemId = $request->input('item_id');
+        $quantity = $request->input('quantity');
+        $operation = $request->input('operation');
+
+        $log = new LogController();
+        list($user_id, $user_type) = $log->startLog();
+
+        $item = Menu::find($itemId);
+        $itemIdExistInItemStock = Item_Stock::where("menu_item_id", $itemId)->first();
+
+        if ($itemIdExistInItemStock) {
+            $currentItemQuantity = $itemIdExistInItemStock->quantity;
+
+            if ($operation == "add") {
+                $newItemQuantity = $currentItemQuantity + $quantity;
+                $activity = $item->name . " / " . $item->category . " added [" . $quantity . "]. New Quantity stock [" . $newItemQuantity . "].";
+            } else if ($operation == "remove") {
+                if ($quantity > $currentItemQuantity) {
+                    $response = "insufficient";
+                    return response()->json($response);
+                } else {
+                    $newItemQuantity = $currentItemQuantity - $quantity;
+                    $activity = $item->name . " / " . $item->category . " deducted [" . $quantity . "]. New Quantity stock [" . $newItemQuantity . "].";
                 }
             }
+
+            $itemIdExistInItemStock->quantity = $newItemQuantity;
+
+            if ($itemIdExistInItemStock->save()) {
+                $log->endLog($user_id, $user_type, $activity);
+                $response = true;
+            } else {
+                $response = false;
+            }
+        } else {
+            $response = $this->createNewStockForItem($itemId, $quantity, $operation);
         }
 
         return response()->json($response);
+    }
+
+    public function filterStockByRange(Request $request)
+    {
+        $range = $request->input("range");
+
+        $items = Menu::leftJoin("item_stocks", "menu_items.item_id", "=", "item_stocks.menu_item_id")
+            ->select("menu_items.*", "item_stocks.quantity")
+            ->groupBy(
+                "menu_items.item_id",
+                "menu_items.name",
+                "menu_items.description",
+                "menu_items.category",
+                "menu_items.price",
+                "menu_items.max_level",
+                "menu_items.warning_level",
+                "menu_items.created_at",
+                "menu_items.updated_at",
+                "item_stocks.quantity",
+            );
+
+        switch ($range) {
+            case "overmax":
+                $items = $items->havingRaw("item_stocks.quantity > menu_items.max_level");
+                break;
+            case "safe":
+                $items = $items->havingRaw("item_stocks.quantity <= menu_items.max_level AND item_stocks.quantity > (menu_items.max_level * (menu_items.warning_level / 100))");
+                break;
+            case "warning":
+                $items = $items->havingRaw("item_stocks.quantity <= menu_items.max_level * (menu_items.warning_level / 100)");
+                break;
+            case "no_stock":
+                $items = $items->whereNull("item_stocks.menu_item_id");
+                break;
+            default:
+                $items = $items->whereNotNull("item_stocks.menu_item_id");
+                break;
+        }
+
+        $items = $items->get();
+
+        return response()->json($items);
     }
 }

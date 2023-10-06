@@ -59,7 +59,7 @@ class OrderController extends Controller
         $order_id = $request->input('order_id'); //store the value of order_id
         $daily_order_id = $request->input('daily_order_id'); //store the value of daily_order_id
         $order_type = $request->input('order_type'); //store the selected order_type, (dine-in/take-out)
-        $payment_status = $request->input('payment_status'); //store the selected payment_status, (pain/unpaid)
+        $payment_status = $request->input('payment_status'); //store the selected payment_status, (paid/unpaid)
         $table_number = $request->input('table_number'); //store the input value of table_number from ajax
         $totalBill = $request->input('total_bill'); //store the total bill of the order
         $items = $request->input('order_items'); //store the items from the order_items array
@@ -170,7 +170,7 @@ class OrderController extends Controller
             ->get();
 
         foreach ($orders as $order) {
-            $order->formatDate = Carbon::parse($order->created_at)->format('F j, Y, g:i:s A');
+            $order->formatDate = Carbon::parse($order->created_at)->format('M j, Y, g:i:s A');
             $order->ordered_items = Order_Item::join('menu_items', 'order_items.menu_item_id', '=', 'menu_items.item_id')
                 ->where('order_items.order_id', $order->order_id)
                 ->orderByDesc('order_items.created_at')
@@ -196,7 +196,7 @@ class OrderController extends Controller
         $filteredOrders = $filteredOrders->get();
 
         foreach ($filteredOrders as $order) {
-            $order->formatDate = Carbon::parse($order->created_at)->format('F j, Y, g:i:s A');
+            $order->formatDate = Carbon::parse($order->created_at)->format('M j, Y, g:i:s A');
             $order->ordered_items = Order_Item::join('menu_items', 'order_items.menu_item_id', '=', 'menu_items.item_id')
                 ->where('order_id', $order->order_id)
                 ->orderByDesc('order_items.created_at')
@@ -212,9 +212,9 @@ class OrderController extends Controller
     {
         $order_id = $request->input('order_id');
 
-        $orderedItems = Order_Item::join('menu_items', 'order_items.menu_item_id', '=', 'menu_items.item_id')->where('order_id', $order_id)->get();
+        $items = Order_Item::join('menu_items', 'order_items.menu_item_id', '=', 'menu_items.item_id')->where('order_items.order_id', $order_id)->get();
 
-        return response()->json($orderedItems);
+        return response()->json($items);
     }
 
     public function addNewItemToOrder(Request $request)
