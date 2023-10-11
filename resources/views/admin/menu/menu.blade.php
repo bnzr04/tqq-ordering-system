@@ -643,10 +643,11 @@
             const editItemModalCategorySelect = $("#edit_item_modal_category_select");
 
             editItemModalCategorySelect.empty();
+            const editItemInfoModal = $("#editInfoModal");
 
-            $("#id_input").val(itemId);
-            $("#item_name_input").val(itemName);
-            $("#item_description_input").val(itemDescription);
+            editItemInfoModal.find("#id_input").val(itemId);
+            editItemInfoModal.find("#item_name_input").val(itemName);
+            editItemInfoModal.find("#item_description_input").val(itemDescription);
             editItemModalCategorySelect.append('<option value="' + itemCategory + '">' + itemCategory + '</option>');
 
             $.getScript("{{ asset('js/itemsModule.js') }}", function() {
@@ -668,9 +669,9 @@
                     });
             });
 
-            $("#item_price_input").val(itemPrice);
-            $("#max_input").val(max);
-            $("#warning_input").val(warning);
+            editItemInfoModal.find("#item_price_input").val(itemPrice);
+            editItemInfoModal.find("#max_input").val(max);
+            editItemInfoModal.find("#warning_input").val(warning);
         });
 
         $("#edit_item_modal_category_select").on("change", function() {
@@ -684,13 +685,16 @@
         });
 
         $("#update_item_info_modal_button").on("click", function() {
-            const itemCategorySelectInput = $("#edit_item_modal_category_select");
-            var itemId = $("#id_input").val();
-            var itemName = $("#item_name_input").val();
-            var itemDescription = $("#item_description_input").val();
+            const editItemInfoModal = $("#editInfoModal");
+            const itemCategorySelectInput = editItemInfoModal.find("#edit_item_modal_category_select");
+            var itemId = editItemInfoModal.find("#id_input").val();
+            var itemName = editItemInfoModal.find("#item_name_input").val();
+            var itemDescription = editItemInfoModal.find("#item_description_input").val();
             var itemCategory = itemCategorySelectInput.val();
-            var OtherCategoryValue = $("#edit_modal_other_category_input").val();
-            var itemPrice = $("#item_price_input").val();
+            var OtherCategoryValue = editItemInfoModal.find("#edit_modal_other_category_input").val();
+            var itemPrice = editItemInfoModal.find("#item_price_input").val();
+            var max = editItemInfoModal.find("#max_input").val();
+            var warning = editItemInfoModal.find("#warning_input").val();
 
             if (itemCategory === "other") {
                 itemCategory = OtherCategoryValue;
@@ -705,7 +709,9 @@
                         itemName,
                         itemDescription,
                         itemCategory,
-                        itemPrice
+                        itemPrice,
+                        max,
+                        warning
                     )
                     .then((response) => {
                         if (response) {

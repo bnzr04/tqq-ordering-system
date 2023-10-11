@@ -99,7 +99,9 @@ function updateItemInformation(
     itemName,
     itemDescription,
     itemCategory,
-    itemPrice
+    itemPrice,
+    max,
+    warning
 ) {
     return new Promise((resolve, reject) => {
         $.ajax({
@@ -111,6 +113,8 @@ function updateItemInformation(
                 item_description: itemDescription,
                 item_category: itemCategory,
                 item_price: itemPrice,
+                max_level: max,
+                warning_level: warning,
                 _token: $("meta[name='csrf-token']").attr("content"),
             },
             success: (response) => {

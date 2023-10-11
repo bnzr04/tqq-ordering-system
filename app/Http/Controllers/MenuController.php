@@ -105,6 +105,8 @@ class MenuController extends Controller
         $item_description = $request->input('item_description');
         $item_category = $request->input('item_category');
         $item_price = $request->input('item_price');
+        $max_level = $request->input('max_level');
+        $warning_level = $request->input('warning_level');
 
         $updateItemInfo = Menu::find($item_id);
         if ($item_category == "") {
@@ -118,6 +120,8 @@ class MenuController extends Controller
         $updateItemInfo->description = $item_description;
         $updateItemInfo->category = ucwords($item_category);
         $updateItemInfo->price = $item_price;
+        $updateItemInfo->warning_level = $warning_level;
+        $updateItemInfo->max_level = $max_level;
 
         if ($updateItemInfo->save()) {
             $activity = "Item ID [" . $item_id . "] information is updated.";
