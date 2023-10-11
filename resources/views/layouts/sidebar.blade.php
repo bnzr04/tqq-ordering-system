@@ -38,7 +38,6 @@
             <li><a href="{{ route('menu.admin') }}">Menu</a></li>
             <li><a href="{{ route('orders.admin') }}">Orders</a></li>
             <li><a href="{{ route('kitchen.admin') }}">Kitchen</a></li>
-            <li><a href="#">Inventory</a></li>
             <li><a href="{{ route('sales.admin') }}">Sales</a></li>
             <li><a href="{{ route('logs.admin') }}">Logs</a></li>
             @endif
@@ -48,7 +47,6 @@
             <li><a href="#">Menu</a></li>
             <li><a href="#">Orders</a></li>
             <li><a href="#">Kitchen</a></li>
-            <li><a href="#">Inventory</a></li>
             <li><a href="#">Sales</a></li>
             @endif
 

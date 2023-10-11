@@ -48,7 +48,6 @@
         <div class="container-fluid m-0 p-0" style="height: 93vh;">
             <div class="container-fluid m-0 p-2 d-flex" style="gap:10px">
                 <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#newItemModal" id="modalButton" style="letter-spacing: 2px;">ADD ITEM</button>
-                <button class="btn btn-dark" id="stocks_button" style="letter-spacing: 2px;">STOCKS</button>
                 <div class="container-fluid border d-flex" style="align-items: center;letter-spacing:2px;gap:10px;">
                     <div class="p-2 filter_container" id="has_stock_box" data-value="has_stock">
                         <p class="m-0">Has Stock</p>
@@ -70,6 +69,15 @@
                         <p class="m-0">No Stock</p>
                     </div>
                 </div>
+                <div class="m-0 p-1 d-flex gap-2 align-items-center">
+                    <!-- <input type="date" class="form-control" id="dateForReport"> -->
+                    <form action="{{ route('generate-item-stocks-report.admin') }}" method="post">
+                        @csrf
+                        <button type="submit" class="btn btn-success" id="downloadReportButton">
+                            Download Report
+                        </button>
+                    </form>
+                </div>
             </div>
             <div class="container-fluid m-0 p-1">
                 <div class="container-fluid m-0 p-1 mb-2 border shadow d-flex" style="align-items:center;justify-content:space-between;letter-spacing:3px;">
@@ -87,7 +95,7 @@
                     </div>
                 </div>
                 <div class="container-fluid m-0 p-0">
-                    <table class="table table-dark table-striped">
+                    <table class="table table-dark">
                         <thead>
                             <tr style="position: sticky;top:0;letter-spacing:3px;">
                                 <th scope="col" class="border">ID</th>
@@ -118,9 +126,9 @@
                 <button type="button" class="btn-close add_item_modal_close_button" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="container-fluid m-0 p-0">
+                <!-- <div class="container-fluid m-0 p-0">
                     <input type="file" name="insert_item" id="insert_item" class="border p-1 rounded border-secondary">
-                </div>
+                </div> -->
                 <div class="container-fluid m-0 p-0 my-2 mt-3">
                     <label for="name" style="letter-spacing: 2px;">Name</label>
                     <input type="text" name="name" id="name" class="form-control border-secondary">
@@ -298,7 +306,7 @@
                 warning_level
             } = itemInfo;
 
-            var tableRow = $("<tr class=''><td class='border'>" + item_id + "</td><td class='border'>" + name + "</td><td class='border'>" + description + "</td><td class='border'>" + category + "</td><td class='border'>" + price + "</td><td class='border'>" + quantity + "</td>");
+            var tableRow = $("<tr class=''><td class='border'>" + item_id + "</td><td class='border'>" + name + "</td><td class='border'>" + description + "</td><td class='border'>" + category + "</td><td class='border'>" + price + "</td><td class='border quantity_box' data-max='" + max_level + "' data-warning='" + warning_level + "'>" + quantity + "</td>");
             var buttonColumn = $("<td class='border' id='buttons_column'><button data-bs-toggle='modal' class='edit_item_info_button' data-bs-target='#editInfoModal' data-item-id='" + item_id + "' data-item-name='" + name + "' data-item-description='" + description + "' data-item-category='" + category + "' data-item-price='" + price + "' data-item-max='" + max_level + "' data-item-warning='" + warning_level + "'>Edit info</button> \
             <button class='remove_item_button' data-item-id='" + item_id + "'>Remove item</button></td></tr>");
             var addButtonColumn = "<button class='add_stock_button' data-bs-toggle='modal' data-bs-target='#addStockModal' data-item-id='" + item_id + "' data-item-name='" + name + "' data-item-category='" + category + "' data-item-quantity='" + quantity + "'>Update stock</button>";
@@ -306,6 +314,35 @@
             tableBody.append(tableRow);
             tableRow.append(buttonColumn);
             buttonColumn.prepend(addButtonColumn);
+        }
+
+        function colorDesignationOfQuantityBox() {
+            //This will give colors to each of the .quantity_box depends on the stock quantity of the item
+            $(".quantity_box").each(function() {
+                var quantity = parseInt($(this).text());
+                var max = $(this).data("max");
+                var warning = $(this).data("warning");
+
+                var warningQty = max * (warning / 100);
+                var rangeColor = "";
+
+                $(this).css("text-align", "center");
+                $(this).css("color", "#000");
+
+                if (quantity > max) {
+                    rangeColor = "Cyan";
+                    $(this).css("background-color", "#00ffcc");
+                } else if (quantity > warningQty && quantity <= max) {
+                    rangeColor = "Green";
+                    $(this).css("background-color", "#00ff00");
+                } else if (quantity <= warningQty && quantity !== 0) {
+                    rangeColor = "Orange";
+                    $(this).css("background-color", "#ff9900");
+                } else if (quantity == 0) {
+                    rangeColor = "Red";
+                    $(this).css("background-color", "#ff0000");
+                }
+            });
         }
 
         function fetchItem() {
@@ -334,6 +371,8 @@
 
                                 itemRowDisplay(itemInfo);
                             });
+
+                            colorDesignationOfQuantityBox();
 
                         } else {
                             tableBody.append("<tr><td colspan='7'>No item...</td></tr>");
@@ -373,6 +412,8 @@
                                 itemRowDisplay(itemInfo);
                             });
 
+                            colorDesignationOfQuantityBox();
+
                         } else {
                             tableBody.append("<tr><td colspan='7'>No item on the menu...</td></tr>");
                         }
@@ -381,6 +422,18 @@
                         console.error(error);
                     });
             });
+        }
+
+        function resetModal() {
+            $("#name").val("");
+            $("#description").val("");
+            $("#category").val("");
+            $("#price").val("");
+        }
+
+        function resetMenuCategory() {
+            $("#menu_category").val("all");
+            $("#menu_category").prop("selectedIndex", 0);
         }
 
         $('#menu_category').on('change', function() {
@@ -414,6 +467,8 @@
                                 itemRowDisplay(itemInfo);
                             });
 
+                            colorDesignationOfQuantityBox();
+
                         } else {
                             tableBody.append("<tr><td colspan='6'>No item on the menu...</td></tr>");
                         }
@@ -423,13 +478,6 @@
                     });
             });
         });
-
-        function resetModal() {
-            $("#name").val("");
-            $("#description").val("");
-            $("#category").val("");
-            $("#price").val("");
-        }
 
         $('#newItemModal').on('shown.bs.modal', function() {
             $("#newItemModal").css('display', 'block');
@@ -500,10 +548,6 @@
             } else {
                 $("#other_input_container").css('display', 'none');
             }
-        });
-
-        $("#stocks_button").on("click", function() { //redirect to stocks view 
-            window.location.href = "{{ route('stocks.admin') }}";
         });
 
         // Click event handler for the "Add Stock" button in the modal
@@ -594,6 +638,8 @@
             var itemDescription = $(this).data("item-description");
             var itemCategory = $(this).data("item-category");
             var itemPrice = $(this).data("item-price");
+            var max = $(this).data("item-max");
+            var warning = $(this).data("item-warning");
             const editItemModalCategorySelect = $("#edit_item_modal_category_select");
 
             editItemModalCategorySelect.empty();
@@ -623,6 +669,8 @@
             });
 
             $("#item_price_input").val(itemPrice);
+            $("#max_input").val(max);
+            $("#warning_input").val(warning);
         });
 
         $("#edit_item_modal_category_select").on("change", function() {
@@ -692,8 +740,7 @@
         });
 
         $("#searchItemInput").on("input", function() {
-            $("#menu_category").val("all");
-            $("#menu_category").prop("selectedIndex", 0);
+            resetMenuCategory();
             tableTitle.text("ALL");
 
             var itemName = $(this).val();
@@ -723,6 +770,8 @@
                                 itemRowDisplay(itemInfo);
                             });
 
+                            colorDesignationOfQuantityBox();
+
                         } else {
                             tableBody.append("<tr><td colspan='7'>No item on the menu...</td></tr>");
                         }
@@ -735,6 +784,7 @@
 
 
         $("#overmax_box").on("click", function() {
+            resetMenuCategory();
             var value = $(this).data('value');
 
             tableTitle.text("Over Max Items");
@@ -742,6 +792,7 @@
         });
 
         $("#safe_box").on("click", function() {
+            resetMenuCategory();
             var value = $(this).data('value');
 
             tableTitle.text("Safe Items");
@@ -749,6 +800,7 @@
         });
 
         $("#warning_box").on("click", function() {
+            resetMenuCategory();
             var value = $(this).data('value');
 
             tableTitle.text("Warning Items");
@@ -756,6 +808,7 @@
         });
 
         $("#no_stock_box").on("click", function() {
+            resetMenuCategory();
             var value = $(this).data('value');
 
             tableTitle.text("No Stock Items");
@@ -763,11 +816,55 @@
         });
 
         $("#has_stock_box").on("click", function() {
+            resetMenuCategory();
             var value = $(this).data('value');
 
             tableTitle.text("Has Stock Items");
             filterStock(value);
         });
+
+        function generateItemStockReport(route) {
+            $.ajax({
+                type: "post",
+                url: route,
+                data: {
+                    _token: $('meta[name="csrf-token"]').attr("content"),
+                },
+                success: function(response) {
+                    console.log("downloaded");
+                },
+                error: function(xhr, status, status) {
+                    console.log(xhr.responseText);
+                }
+            });
+        }
+
+        // $("#downloadReportButton").on("click", () => {
+        //     const dateForReport = $("#dateForReport");
+        //     var message = "";
+        //     var hasDate = false;
+
+        //     if (dateForReport.val() !== "") {
+        //         message = `Do you want to download ${dateForReport.val()} item stocks report?`;
+        //         hasDate = true;
+        //     } else {
+        //         message = "Do you want to download todays item stocks report?";
+        //         hasDate = false;
+        //     }
+
+        //     if (confirm(message)) {
+        //         var route = "";
+
+        //         if (hasDate) {
+        //             var date = dateForReport.val();
+        //             route = `{{ route('generate-item-stocks-report.admin') }}?date=${date}`;
+        //         } else {
+        //             route = "{{ route('generate-item-stocks-report.admin') }}";
+        //         }
+
+        //         generateItemStockReport(route);
+        //     }
+        // });
 
         fetchMenuCategory();
         fetchItem();

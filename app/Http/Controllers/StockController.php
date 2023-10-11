@@ -8,10 +8,6 @@ use Illuminate\Http\Request;
 
 class StockController extends Controller
 {
-    public function index() //this function will return the stocks view of admin
-    {
-        return view('admin.stocks.stocks');
-    }
 
     public function fetchItemsAndStocks(Request $request)
     {
@@ -47,6 +43,15 @@ class StockController extends Controller
         return $response;
     }
 
+    public function deleteZeroItemStock($itemId)
+    {
+        $itemExist = Item_Stock::where("menu_item_id", $itemId)->first();
+
+        if ($itemExist) {
+            $itemExist->delete();
+        }
+    }
+
     public function addOrRemoveStockQuantity(Request $request)
     {
         $itemId = $request->input('item_id');
@@ -71,7 +76,12 @@ class StockController extends Controller
                     return response()->json($response);
                 } else {
                     $newItemQuantity = $currentItemQuantity - $quantity;
-                    $activity = $item->name . " / " . $item->category . " deducted [" . $quantity . "]. New Quantity stock [" . $newItemQuantity . "].";
+
+                    if ($newItemQuantity <= 0) {
+                        $activity = $item->name . " / " . $item->category . " deducted [" . $quantity . "]. Zero quantity stock [" . $newItemQuantity . "].";
+                    } else {
+                        $activity = $item->name . " / " . $item->category . " deducted [" . $quantity . "]. New quantity stock [" . $newItemQuantity . "].";
+                    }
                 }
             }
 
@@ -80,6 +90,10 @@ class StockController extends Controller
             if ($itemIdExistInItemStock->save()) {
                 $log->endLog($user_id, $user_type, $activity);
                 $response = true;
+
+                if ($itemIdExistInItemStock->quantity <= 0) {
+                    $this->deleteZeroItemStock($itemId);
+                }
             } else {
                 $response = false;
             }

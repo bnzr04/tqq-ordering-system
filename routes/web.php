@@ -8,6 +8,7 @@ use App\Http\Controllers\MenuController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ReceiptController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\StockController;
 use Illuminate\Support\Facades\Auth;
@@ -47,6 +48,7 @@ ADMIN ROUTES
 Route::prefix('admin')->middleware(['auth', 'user-access:admin'])->group(function () {
     //dashboard routes
     Route::get('/dashboard', [DashboardController::class, 'adminDashboard'])->name('dashboard.admin');
+    Route::get('/dashboard-info', [DashboardController::class, 'dashBoardInformation'])->name('dashboard-info.admin');
 
     //menu routes
     Route::get('/menu', [MenuController::class, 'index'])->name('menu.admin');
@@ -58,10 +60,10 @@ Route::prefix('admin')->middleware(['auth', 'user-access:admin'])->group(functio
     Route::post('/delete-item-info', [MenuController::class, 'deleteItemInformation'])->name('delete-item-info.admin');
 
     //stocks routes
-    Route::get('/stocks', [StockController::class, 'index'])->name('stocks.admin');
     Route::get('/filter-stock-by-range', [StockController::class, 'filterStockByRange'])->name('filter-stock-by-range.admin');
     Route::get('/fetch-items-and-stocks', [StockController::class, 'fetchItemsAndStocks'])->name('fetch-items-and-stocks.admin');
     Route::post('/add-item-stock', [StockController::class, 'addOrRemoveStockQuantity'])->name('add-item-stock.admin');
+    Route::post('/generate-item-stocks-report', [ReportController::class, 'itemStockReportExport'])->name('generate-item-stocks-report.admin');
 
     //orders routes
     Route::get('/orders', [OrderController::class, 'index'])->name('orders.admin');
