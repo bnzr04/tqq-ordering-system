@@ -11,6 +11,7 @@ use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SalesController;
 use App\Http\Controllers\StockController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -49,6 +50,15 @@ Route::prefix('admin')->middleware(['auth', 'user-access:admin'])->group(functio
     //dashboard routes
     Route::get('/dashboard', [DashboardController::class, 'adminDashboard'])->name('dashboard.admin');
     Route::get('/dashboard-info', [DashboardController::class, 'dashBoardInformation'])->name('dashboard-info.admin');
+
+    //users routes
+    Route::get('/users', [UserController::class, 'viewUsers'])->name('users.admin');
+    Route::get('/get-users', [UserController::class, 'index'])->name('get-users.admin');
+    Route::get('/get-user-info', [UserController::class, 'getUserInfo'])->name('get-user-info.admin');
+    Route::post('/add-user-info', [UserController::class, 'addNewUserInfo'])->name('add-user-info.admin');
+    Route::put('/update-user-info', [UserController::class, 'updateUserInfo'])->name('update-user-info.admin');
+    Route::put('/update-user-password', [UserController::class, 'changeUserPassword'])->name('update-user-password.admin');
+    Route::delete('/delete-user', [UserController::class, 'deleteUser'])->name('delete-user.admin');
 
     //menu routes
     Route::get('/menu', [MenuController::class, 'index'])->name('menu.admin');

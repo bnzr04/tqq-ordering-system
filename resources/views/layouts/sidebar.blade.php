@@ -34,7 +34,7 @@
         <ul>
             @if(auth()->user()->type == 'admin')
             <li><a href="{{ route('dashboard.admin') }}">Dashboard</a></li>
-            <li><a href="#">Users</a></li>
+            <li><a href="{{ route('users.admin') }}">Users</a></li>
             <li><a href="{{ route('menu.admin') }}">Menu</a></li>
             <li><a href="{{ route('orders.admin') }}">Orders</a></li>
             <li><a href="{{ route('kitchen.admin') }}">Kitchen</a></li>
