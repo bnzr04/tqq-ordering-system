@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Cash;
 use App\Models\Menu;
 use App\Models\Order;
 use App\Models\Order_Item;
@@ -90,9 +91,12 @@ class SalesController extends Controller
             $this->fetchSoldItemsByPaymentStatus($soldItems, $orderType);
         }
 
+        $cashDate = Carbon::parse($start)->format('Y-m-d');
+        $cash = Cash::whereRaw("DATE(date) = ?", [$cashDate])->value("cash");
+
         $soldItems = $soldItems->get();
 
-        return response()->json(['sold_items' => $soldItems, 'formatted_date' => $formattedDate]);
+        return response()->json(['sold_items' => $soldItems, 'formatted_date' => $formattedDate, 'cash' => $cash]);
     }
 
     public function getTotalSales(Request $request)
@@ -111,23 +115,66 @@ class SalesController extends Controller
             $end = Carbon::now()->endOfDay();
         }
 
-        $totalDineInSales = Order::select(DB::raw('SUM(total_amount) as total_dine_in'))
-            ->where('order_type', 'dine-in')
+        $date = Carbon::parse($start)->format("Y-m-d");
+
+        $cash = Cash::whereRaw("DATE(date) = ?", [$date])->value("cash");
+
+        $totalDineInSales = Order::where('order_type', 'dine-in')
             ->where('payment_status', 'paid')
             ->whereBetween('created_at', [$start, $end])
-            ->get();
+            ->sum("total_amount");
 
-        $totalTakeOutSales = Order::select(DB::raw('SUM(total_amount) as total_take_out'))
-            ->where('order_type', 'take-out')
+        $totalTakeOutSales = Order::where('order_type', 'take-out')
             ->where('payment_status', 'paid')
             ->whereBetween('created_at', [$start, $end])
-            ->get();
+            ->sum("total_amount");
 
-        $totalSales = Order::select(DB::raw('SUM(total_amount) as total_sales'))
-            ->where('payment_status', 'paid')
+        $totalSales = Order::where('payment_status', 'paid')
             ->whereBetween('created_at', [$start, $end])
-            ->get();
+            ->sum("total_amount");
 
-        return response()->json([$totalDineInSales, $totalTakeOutSales, $totalSales]);
+        return response()->json([
+            "cash" => $cash,
+            "dine_in" => $totalDineInSales,
+            "take_out" => $totalTakeOutSales,
+            "total_sales" => $totalSales
+        ]);
+    }
+
+    public function addCash(Request $request)
+    {
+        $newCash = $request->input("cash");
+        $todayDate = Carbon::now()->format("Y-m-d");
+
+        $log = new LogController();
+        list($user_id, $user_type) = $log->startLog();
+
+        $cashExist = Cash::whereRaw("DATE(date) = ?", [$todayDate])->first();
+
+        if ($cashExist) {
+            $oldCash = $cashExist->cash;
+            $cashExist->cash = $newCash;
+            if ($cashExist->save()) {
+                $activity = "Cash is updated from [" . $oldCash . "] to [" . $newCash . "].";
+                $log->endLog($user_id, $user_type, $activity);
+
+                $response =  true;
+            } else {
+                $response = false;
+            }
+        } else {
+            $cash = new Cash();
+            $cash->cash = $newCash;
+            if ($cash->save()) {
+                $activity = "Cash is declared [" . $newCash . "]";
+                $log->endLog($user_id, $user_type, $activity);
+
+                $response = true;
+            } else {
+                $response = false;
+            }
+        }
+
+        return response()->json(["response" => $response, 'cash' => $newCash]);
     }
 }

@@ -17,7 +17,7 @@ body {
     padding: 3px;
     border: black 1px solid;
     width: 192.5px;
-    height: 520px;
+    min-height: 520px;
     background-color: white;
 }
 
@@ -60,7 +60,7 @@ body {
         margin: 0;
         padding: 3px;
         width: 192.5px;
-        height: 520px;
+        min-height: 520px;
         border: black 1px solid;
         page-break-after: always; /* To ensure each receipt starts on a new page when printed */
     }

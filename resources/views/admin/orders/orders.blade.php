@@ -699,7 +699,7 @@
 
                             var paymentButton = $("<button type='button' id='paymentButton' class='text-white' data-order-id='" + data.order_id + "'>PAYMENT</button>");
 
-                            var serveAllButton = $("<button type='button' class='mx-1'>SERVE</button>");
+                            var completeButton = $("<button type='button' class='mx-1' id='completeButton' data-order-id='" + data.order_id + "' data-daily-order-id='" + dailyOrderId + "'>COMPLETE</button>");
 
                             var cancelOrderButton = $("<button type='button' class='mx-1'>CANCEL</button>");
 
@@ -710,7 +710,6 @@
                             dataContainer.prepend(orderControlContainer);
 
                             if (data.payment_status == "unpaid") {
-                                // orderControlContainer.append(printBillButton);
                                 orderControlContainer.append(addItemButton);
                                 orderControlContainer.append(paymentButton);
                             } else if (data.payment_status == "paid") {
@@ -718,10 +717,11 @@
                             }
 
                             if (data.order_status == "Serving") {
-                                orderControlContainer.append(serveAllButton);
-                            } else if (data.order_status == "In Queue" && data.payment_status !== "paid") {
-                                orderControlContainer.append(cancelOrderButton);
+                                orderControlContainer.append(completeButton);
                             }
+                            //  else if (data.order_status == "In Queue" && data.payment_status !== "paid") {
+                            //     orderControlContainer.append(cancelOrderButton);
+                            // }
 
                             data.ordered_items.forEach(function(item) {
                                 var itemPrice = parseFloat(item.price);
@@ -732,13 +732,14 @@
 
                                 dataContainer.append(row);
 
-                                if (item.status === 'serving') {
-                                    var button = '<button class="mx-1 done_button" data-item-order-id="' + item.order_item_id + '" >Done</button>';
-                                } else if (item.status === 'in queue' && data.payment_status !== "paid") {
-                                    var button = '<button class="mx-1 remove_item" data-order-id="' + item.order_id + '" data-item-name="' + item.name + '" data-item-category="' + item.category + '" data-item-price="' + item.price + '" data-item-order-id="' + item.order_item_id + '" data-item-quantity="' + item.quantity + '" data-bs-toggle="modal" data-bs-target="#remove_item_modal">Remove</button>';
-                                }
+                                // if (item.status === 'serving') {
+                                //     var button = '<button class="mx-1 done_button" data-item-order-id="' + item.order_item_id + '" >Done</button>';
+                                // }
+                                //  else if (item.status === 'in queue' && data.payment_status !== "paid") {
+                                //     var button = '<button class="mx-1 remove_item" data-order-id="' + item.order_id + '" data-item-name="' + item.name + '" data-item-category="' + item.category + '" data-item-price="' + item.price + '" data-item-order-id="' + item.order_item_id + '" data-item-quantity="' + item.quantity + '" data-bs-toggle="modal" data-bs-target="#remove_item_modal">Remove</button>';
+                                // }
 
-                                row.find('.status_container').append(button);
+                                // row.find('.status_container').append(button);
                             });
                         }
                     })
@@ -771,30 +772,31 @@
             printReceipt(orderId);
         });
 
-        $(document).on('click', '.done_button', function() {
-            var itemOrderId = $(this).data('item-order-id');
-            var statusContainer = $(this).parent();
+        $(document).on('click', '#completeButton', function() {
+            var orderId = $(this).data('order-id');
+            var dailyOrderId = $(this).data('daily-order-id');
 
-            $.ajax({
-                type: "POST",
-                url: "{{ route('update-item-status-complete.admin') }}",
-                data: {
-                    item_order_id: itemOrderId,
-                    _token: $('meta[name="csrf-token"]').attr('content'),
-                },
-                success: function(data) {
-                    if (data == true) {
-                        // console.log(data)
-                        statusContainer.children('p').text('completed');
-                        statusContainer.children('button').remove();
-                    } else {
-                        alert('Failed to update item status.');
+            if (confirm("Do you want to mark as completed this order ID [" + dailyOrderId + "]?")) {
+                $.ajax({
+                    type: "get",
+                    url: "{{ route('update-order-status-complete.admin') }}",
+                    data: {
+                        order_id: orderId,
+                        _token: $("meta[name='csrf-token']").attr("content"),
+                    },
+                    success: function(response) {
+                        if (response) {
+                            alert("Order ID [" + dailyOrderId + "] is completed.");
+                            window.location.reload();
+                        } else {
+                            alert("Order ID [" + dailyOrderId + "] is failed to mark as complete.");
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error(xhr.responseText);
                     }
-                },
-                error: function(xhr, status, error) {
-                    console.log(xhr.responseText);
-                }
-            });
+                });
+            }
         });
 
         $(document).on('click', '.remove_item', function() {
@@ -842,7 +844,6 @@
                         _token: $('meta[name="csrf-token"]').attr('content'),
                     },
                     success: function(data) {
-                        console.log(data)
                         if (data.in_queue_status == true) {
                             window.location.reload();
                         } else {

@@ -290,20 +290,34 @@ class OrderController extends Controller
         }
     }
 
-    public function updateItemStatusToComplete(Request $request) //this function will update the item ordered status from 'serving' to 'completed'
+    public function updateOrderToComplete(Request $request)
     {
-        $itemOrderId = $request->input('item_order_id'); //get the item order id value
+        $orderId = $request->input('order_id');
 
-        $item = Order_Item::find($itemOrderId); //store the item order id data from order_items table
-        $item->status = 'completed'; //set the item status to 'completed'
+        $order = Order::find($orderId);
 
-        if ($item->save()) { //if successfully saved to database
-            $response = true; //set response to true
-        } else {
-            $response = false; //else set response to false
+        if ($order->order_status === "serving") {
+            $order->order_status = "completed";
+            if ($order->save()) {
+                $response = $this->updateItemStatusToComplete($orderId);
+            } else {
+                $response = false;
+            }
         }
 
-        return response()->json($response); //return response
+        return response()->json($response);
+    }
+
+    public function updateItemStatusToComplete($orderId) //this function will update the item ordered status from 'serving' to 'completed'
+    {
+        $orderedItems = Order_Item::where("order_id", $orderId)->get();
+
+        foreach ($orderedItems as $item) {
+            $item->status = "completed";
+            $item->save();
+        }
+
+        return true;
     }
 
     public function removeItemQuantity(Request $request) //this function will remove a quantity to the ordered quantity, this will do if the item status is 'in queue'

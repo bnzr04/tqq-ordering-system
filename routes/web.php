@@ -84,7 +84,7 @@ Route::prefix('admin')->middleware(['auth', 'user-access:admin'])->group(functio
     Route::get('/fetch-orders-by-date', [OrderController::class, 'fetchOrdersByDate'])->name('fetch-orders-by-date.admin');
     Route::get('/fetch-ordered-items-of-order', [OrderController::class, 'getOrderedItemsOfOrder'])->name('fetch-ordered-items-of-order.admin');
     Route::get('/add-new-item-to-order', [OrderController::class, 'addNewItemToOrder'])->name('add-new-item-to-order.admin');
-    Route::post('/update-item-status-complete', [OrderController::class, 'updateItemStatusToComplete'])->name('update-item-status-complete.admin');
+    Route::get('/update-order-status-complete', [OrderController::class, 'updateOrderToComplete'])->name('update-order-status-complete.admin');
     Route::post('/remove-item-to-order', [OrderController::class, 'removeItemQuantity'])->name('remove-item-to-order.admin');
 
     //kitchen routes
@@ -105,6 +105,7 @@ Route::prefix('admin')->middleware(['auth', 'user-access:admin'])->group(functio
     Route::get('/fetch-categories', [SalesController::class, 'fetchCategories'])->name('fetch-categories.admin');
     Route::get('/fetch-sold-items', [SalesController::class, 'fetchSoldItems'])->name('fetch-sold-items.admin');
     Route::get('/get-sales-amount', [SalesController::class, 'getTotalSales'])->name('get-sales-amount.admin');
+    Route::post('/add-cash', [SalesController::class, 'addCash'])->name('add-cash.admin');
 
     //logs routes
     Route::get('/logs', [LogController::class, 'index'])->name('logs.admin');

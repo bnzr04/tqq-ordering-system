@@ -82,7 +82,6 @@
                 <div class="container-fluid p-2 m-0 border border-secondary" id="sub-menu">
                     <div class="container-fluid m-0 p-0 mb-1">
                         <a href="{{ route('orders.admin') }}" class="btn btn-dark">Back</a>
-                        <a href="{{ route('payment.admin') }}" class="btn btn-secondary">Payment</a>
                     </div>
                     <section class="layout border" id="menu_category_selector">
                         <button class="rounded-1">&nbsp;</button>

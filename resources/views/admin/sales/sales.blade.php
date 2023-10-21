@@ -85,7 +85,7 @@
                     <div class="mx-1 ms-0 p-2 bg-dark text-white text-center rounded-1 sales-box">
                         <div class="m-0 mb-1 p-0 d-flex align-items-center justify-content-between">
                             <h5 class="m-0">Cash</h5>
-                            <button style="width:20px;height:20px;display:flex;align-items:center;justify-content:center;"><img src="{{ asset('/icons/draw.png/') }}" width="11px"></button>
+                            <button id="cashButton" style="width:20px;height:20px;display:flex;align-items:center;justify-content:center;"><img src="{{ asset('/icons/draw.png/') }}" width="11px"></button>
                         </div>
                         <h3 class="m-0"><span id="cash_display">-</span></h3>
                     </div>
@@ -112,9 +112,38 @@
                         </div>
                         <h3 class="m-0"><span id="total_sales_display">-</span></h3>
                     </div>
+
+                    <div class="mx-1 p-2 bg-warning text-dark text-center rounded-1 sales-box">
+                        <div class="m-0 mb-1 p-0 d-flex align-items-center justify-content-between">
+                            <h5 class="m-0" style="font-size: 16px;">Take Home</h5>
+                        </div>
+                        <h3 class="m-0"><span id="take_home_display">-</span></h3>
+                    </div>
                 </div>
             </div>
 
+        </div>
+    </div>
+</div>
+
+<!--Cash Modal -->
+<div class="modal fade" id="cashModal" tabindex="-1" data-bs-backdrop="static" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel" style="letter-spacing: 3px;">CASH</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="container-fluid m-0 p-1">
+                    <h4 style="letter-spacing: 3px;text-align:center;">Cash</h4>
+                    <input type="number" id="cashInput" class="form-control border-secondary" style="letter-spacing: 3px;font-size:20px;text-align:center;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-dark" id="saveCashButton">Save changes</button>
+            </div>
         </div>
     </div>
 </div>
@@ -123,12 +152,27 @@
 
         const salesDateDisplay = $('#sales_date_display');
         const dayDisplayIdentidier = $('#day_identifier');
+        const cashDisplay = $('#cash_display');
         const orderTypeIdentidier = $('#order_type_identifier');
         const soldTableHead = $('#sales_table_head');
         const soldTableBody = $('#sales_table_body');
-
+        const cashModal = $("#cashModal");
         const categorySelectDropdown = $('#select_category');
         const searchItemInput = $("#search_item_input");
+        const todayButton = $("#today_button");
+        const yesterdayButton = $("#yesterday_button");
+        const dateFilterButton = $("#filter_date_button");
+        const dineInFilterButton = $("#dine_in_filter_button");
+        const takeOutFilterButton = $("#take_out_filter_button");
+        const totalSalesFilterButton = $("#total_sales_filter_button");
+
+        var isToday = true;
+
+        var mainUrl = "{{ route('fetch-sold-items.admin') }}?today=1";
+        var fetchSoldItemsUrl = "{{ route('fetch-sold-items.admin') }}?today=1";
+        let dayIdentifierValue = "(Today)";
+        let orderTypeFilterSubUrl = "";
+        var totalSalesUrl = "{{ route('get-sales-amount.admin') }}?today=1";
 
         function fetchAllCategories() {
             $.ajax({
@@ -149,17 +193,16 @@
             })
         }
 
-        fetchAllCategories();
-
         function fetchSoldItems() {
             $.ajax({
                 type: 'get',
                 url: mainUrl,
                 success: function(data) {
-                    // console.log(data)
+                    var cash = data.cash;
 
                     salesDateDisplay.text(data.formatted_date);
                     dayDisplayIdentidier.text(dayIdentifierValue);
+                    cashDisplay.text(cash == null ? "-" : cash.toFixed(2));
                     orderTypeIdentidier.text(orderTypeFilterSubUrl);
 
                     soldTableHead.empty();
@@ -180,57 +223,67 @@
             })
         }
 
-        var mainUrl = "{{ route('fetch-sold-items.admin') }}?today=1";
-        var fetchSoldItemsUrl = "{{ route('fetch-sold-items.admin') }}?today=1";
-        let dayIdentifierValue = "(Today)";
-        let orderTypeFilterSubUrl = "";
-        fetchSoldItems();
-
         function displayTotalSales() {
             const cashDisplay = $("#cash_display");
             const dineInDisplay = $("#dine_in_display");
             const takeOutDisplay = $("#take_out_display");
             const totalSalesDisplay = $("#total_sales_display");
+            const takeHomeDisplay = $("#take_home_display");
 
             $.ajax({
                 type: "get",
                 url: totalSalesUrl,
                 success: function(data) {
+                    var totalDineIn = 0.00;
+                    var totalTakeOut = 0.00;
+                    var totalSales = 0.00;
+                    var totalCashSales = 0.00;
 
-                    var totalDineIn = data[0][0].total_dine_in;
-                    var totalTakeOut = data[1][0].total_take_out;
-                    var totalSales = data[2][0].total_sales;
+                    totalDineIn = parseFloat(data.dine_in);
+                    totalTakeOut = parseFloat(data.take_out);
+                    totalSales = parseFloat(data.total_sales);
+                    var cash = data.cash == null ? 0.00 : parseFloat(data.cash);
 
-                    if (totalDineIn === null) {
-                        totalDineIn = "-";
-                    }
+                    totalCashSales = totalSales + cash;
 
-                    if (totalTakeOut === null) {
-                        totalTakeOut = "-";
-                    }
+                    dineInDisplay.text(totalDineIn.toFixed(2));
+                    takeOutDisplay.text(totalTakeOut.toFixed(2));
+                    totalSalesDisplay.text(totalCashSales.toFixed(2));
+                    takeHomeDisplay.text(totalSales.toFixed(2));
 
-                    if (totalSales === null) {
-                        totalSales = "-";
-                    }
-
-                    dineInDisplay.text(totalDineIn);
-                    takeOutDisplay.text(totalTakeOut);
-                    totalSalesDisplay.text(totalSales);
                 },
                 error: function(xhr, status, error) {
                     console.log(xhr.responseText);
                 }
-            })
+            });
         }
 
-        var totalSalesUrl = "{{ route('get-sales-amount.admin') }}?today=1";
-        displayTotalSales();
-
-        const todayButton = $("#today_button");
-        const yesterdayButton = $("#yesterday_button");
-        const dateFilterButton = $("#filter_date_button");
+        function addCash(cash) {
+            $.ajax({
+                type: "post",
+                url: "{{ route('add-cash.admin') }}",
+                data: {
+                    cash: cash,
+                    _token: $("meta[name='csrf-token']").attr("content"),
+                },
+                success: (data) => {
+                    if (data.response) {
+                        // $("#cash_display").text(data.cash);
+                        alert("Cash successfully updated");
+                        window.location.reload();
+                        // cashModal.modal("hide");
+                    } else {
+                        alert("Failed to add cash");
+                    }
+                },
+                error: (xhr, status, error) => {
+                    console.error(xhr.responseText);
+                }
+            });
+        }
 
         todayButton.on('click', function() {
+            isToday = true;
             $("#date_input").val('');
             searchItemInput.val('');
             categorySelectDropdown.prop('selectedIndex', 0);
@@ -246,6 +299,7 @@
         });
 
         yesterdayButton.on('click', function() {
+            isToday = false;
             $("#date_input").val('');
             searchItemInput.val('');
             categorySelectDropdown.prop('selectedIndex', 0);
@@ -261,6 +315,7 @@
         });
 
         dateFilterButton.on('click', function() {
+            isToday = false;
             var dateInputValue = $("#date_input").val();
             dayIdentifierValue = "";
             orderTypeFilterSubUrl = "";
@@ -301,10 +356,6 @@
             fetchSoldItems();
         });
 
-        const dineInFilterButton = $("#dine_in_filter_button");
-        const takeOutFilterButton = $("#take_out_filter_button");
-        const totalSalesFilterButton = $("#total_sales_filter_button");
-
         dineInFilterButton.on('click', function() {
             categorySelectDropdown.prop('selectedIndex', 0);
             var paymentStatus = "&order-type=dine-in";
@@ -331,6 +382,36 @@
             fetchSoldItems();
         });
 
+        $(document).on('click', '#cashButton', () => {
+            var cash = parseFloat(cashDisplay.text());
+
+            cashModal.modal("show");
+            cashModal.find("#cashInput").val(cash.toFixed(2));
+
+            if (!isToday) {
+                cashModal.find("#cashInput").prop("disabled", true);
+                cashModal.find("#saveCashButton").prop("disabled", true);
+            } else {
+                cashModal.find("#cashInput").prop("disabled", false);
+                cashModal.find("#saveCashButton").prop("disabled", false);
+            }
+        });
+
+        cashModal.on('click', '#saveCashButton', () => {
+            var newCash = cashModal.find("#cashInput").val();
+
+            if (newCash !== "") {
+                if (confirm("Do you want to change cash value?")) {
+                    addCash(newCash);
+                }
+            } else {
+                alert("Please input cash");
+            }
+        });
+
+        fetchAllCategories();
+        fetchSoldItems();
+        displayTotalSales();
 
     });
 </script>
