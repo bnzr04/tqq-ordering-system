@@ -44,10 +44,10 @@
 
             @if(auth()->user()->type == 'cashier')
             <li><a href="{{ route('dashboard.cashier') }}">Dashboard</a></li>
-            <li><a href="#">Menu</a></li>
-            <li><a href="#">Orders</a></li>
-            <li><a href="#">Kitchen</a></li>
-            <li><a href="#">Sales</a></li>
+            <li><a href="{{ route('menu.cashier') }}">Menu</a></li>
+            <li><a href="{{ route('orders.cashier') }}">Orders</a></li>
+            <li><a href="{{ route('kitchen.cashier') }}">Kitchen</a></li>
+            <li><a href="{{ route('sales.cashier') }}">Sales</a></li>
             @endif
 
 

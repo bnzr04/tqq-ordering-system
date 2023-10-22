@@ -8,19 +8,27 @@ use App\Models\Order;
 use App\Models\Order_Item;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
     public function index() //this function will return the orders view of the admin
     {
-        return view('admin.orders.orders');
+        if (Auth::user()->type === "admin") {
+            return view('admin.orders.orders');
+        } else {
+            return view('cashier.orders.orders');
+        }
     }
 
     public function makeOrder() //this function will return the make-order view with the last id inserted in the table ($lastIdInTable)
     {
-
-        return view('admin.orders.sub-page.make-order');
+        if (Auth::user()->type === "admin") {
+            return view('admin.orders.sub-page.make-order');
+        } else {
+            return view('cashier.orders.sub-page.make-order');
+        }
     }
 
     public function nextOrderId() //this function will return the next order id
@@ -294,11 +302,17 @@ class OrderController extends Controller
     {
         $orderId = $request->input('order_id');
 
+        $log = new LogController();
+        list($user_id, $user_type) = $log->startLog();
+
         $order = Order::find($orderId);
 
         if ($order->order_status === "serving") {
             $order->order_status = "completed";
             if ($order->save()) {
+                $activity = "Order ID [" . $orderId . "] is marked as completed.";
+                $log->endLog($user_id, $user_type, $activity);
+
                 $response = $this->updateItemStatusToComplete($orderId);
             } else {
                 $response = false;

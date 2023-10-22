@@ -156,7 +156,7 @@
             <h3 class="m-0 p-2 shadow" style="letter-spacing: 2px;">Orders</h3>
         </div>
         <div class="container-fluid m-0 mt-2 p-2">
-            <a class="btn btn-dark" href="{{ route('make-order.admin') }}" title="Make New Order">Make Order +</a>
+            <a class="btn btn-dark" href="{{ route('make-order.cashier') }}" title="Make New Order">Make Order +</a>
         </div>
         <div class="container-fluid m-0 p-2 border-top border-bottom" style="display: flex;align-items:center">
             <div class="d-flex border m-0 p-1">
@@ -289,7 +289,7 @@
         const tableTitle = $("#table-title");
         const orderContainer = $("#order_container");
         const paymentModal = $("#paymentModal");
-        var mainFilterDateUrl = "{{ route('fetch-orders-by-date.admin') }}";
+        var mainFilterDateUrl = "{{ route('fetch-orders-by-date.cashier') }}";
         var paymentStatus;
         var orderType;
         let subTitle;
@@ -392,7 +392,7 @@
             return new Promise(function(resolve, reject) {
                 $.ajax({
                     type: 'GET',
-                    url: "{{ route('fetch-ordered-items.admin') }}",
+                    url: "{{ route('fetch-ordered-items.cashier') }}",
                     data: {
                         order_id: orderId,
                     },
@@ -406,8 +406,8 @@
             });
         }
 
-        var mainUrl = "{{ route('fetch-orders.admin') }}";
-        var url = "{{ route('fetch-orders.admin') }}";
+        var mainUrl = "{{ route('fetch-orders.cashier') }}";
+        var url = "{{ route('fetch-orders.cashier') }}";
         let title = "Today Orders";
         var titleText = title;
         orders();
@@ -424,7 +424,7 @@
         const dineInBtn = $('#dine_in_btn');
         const takeOutBtn = $('#take_out_btn');
 
-        let currentUrl = "{{ route('fetch-orders.admin') }}";
+        let currentUrl = "{{ route('fetch-orders.cashier') }}";
         var dayFilter = "?today=1";
 
         todayBtn.on('click', function() {
@@ -562,7 +562,7 @@
 
                 if (cash >= totalAmount) {
                     var generateReceiptRoute = "{{ route('generate-receipt') }}";
-                    var makeOrderAsPaidToute = "{{ route('make-order-paid.admin') }}";
+                    var makeOrderAsPaidToute = "{{ route('make-order-paid.cashier') }}";
                     $.getScript("{{ asset('js/payment.js') }}", function() {
                         generateReceipt(orderId, cash, change, generateReceiptRoute);
                         makeOrderAsPaid(orderId, makeOrderAsPaidToute)
@@ -595,7 +595,7 @@
             return new Promise(function(resolve, reject) {
                 $.ajax({
                     type: "get",
-                    url: "{{ route('fetch-ordered-items-of-order.admin') }}",
+                    url: "{{ route('fetch-ordered-items-of-order.cashier') }}",
                     data: {
                         order_id: orderId
                     },
@@ -779,7 +779,7 @@
             if (confirm("Do you want to mark as completed this order ID [" + dailyOrderId + "]?")) {
                 $.ajax({
                     type: "get",
-                    url: "{{ route('update-order-status-complete.admin') }}",
+                    url: "{{ route('update-order-status-complete.cashier') }}",
                     data: {
                         order_id: orderId,
                         _token: $("meta[name='csrf-token']").attr("content"),
@@ -836,7 +836,7 @@
             if (confirm('Are you sure you want to remove this?')) {
                 $.ajax({
                     type: "POST",
-                    url: "{{ route('remove-item-to-order.admin') }}",
+                    url: "{{ route('remove-item-to-order.cashier') }}",
                     data: {
                         order_id: orderId,
                         item_order_id: itemOrderId,
@@ -864,7 +864,7 @@
 
             $.ajax({
                 type: "GET",
-                url: "{{ route('search-item-name.admin') }}",
+                url: "{{ route('search-item-name.cashier') }}",
                 data: {
                     item_name: searchValue
                 },
@@ -1026,7 +1026,7 @@
                 if (confirm("Do you want to add these item/s ?")) {
                     $.ajax({
                         type: "GET",
-                        url: "{{ route('add-new-item-to-order.admin') }}",
+                        url: "{{ route('add-new-item-to-order.cashier') }}",
                         data: {
                             subtotal: subTotal,
                             order_id: toAddItemOrderId,

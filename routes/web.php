@@ -116,5 +116,53 @@ Route::prefix('admin')->middleware(['auth', 'user-access:admin'])->group(functio
 CASHIER ROUTES
 */ //////////
 Route::prefix('cashier')->middleware(['auth', 'user-access:cashier'])->group(function () {
+    //dashboard
+    Route::get('/dashboard-info', [DashboardController::class, 'dashBoardInformation'])->name('dashboard-info.cashier');
     Route::get('/dashboard', [DashboardController::class, 'cashierDashboard'])->name('dashboard.cashier');
+
+    //menu routes
+    Route::get('/menu', [MenuController::class, 'index'])->name('menu.cashier');
+    Route::get('/filter-item-by-category', [MenuController::class, 'filterItemByCategory'])->name('filter-item-by-category.cashier');
+    Route::get('/fetch-items', [MenuController::class, 'fetchItems'])->name('fetch-items.cashier');
+    Route::get('/fetch-categories', [MenuController::class, 'fetchCategories'])->name('fetch-categories.cashier');
+    Route::post('/save-menu-item', [MenuController::class, 'saveItem'])->name('save-item.cashier');
+    Route::post('/update-item-info', [MenuController::class, 'updateItemInformation'])->name('update-item-info.cashier');
+
+    //stocks routes
+    Route::get('/filter-stock-by-range', [StockController::class, 'filterStockByRange'])->name('filter-stock-by-range.cashier');
+    Route::get('/fetch-items-and-stocks', [StockController::class, 'fetchItemsAndStocks'])->name('fetch-items-and-stocks.cashier');
+    Route::post('/add-item-stock', [StockController::class, 'addOrRemoveStockQuantity'])->name('add-item-stock.cashier');
+    Route::post('/generate-item-stocks-report', [ReportController::class, 'itemStockReportExport'])->name('generate-item-stocks-report.cashier');
+
+    //orders routes
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.cashier');
+    Route::get('/next-order-id', [OrderController::class, 'nextOrderId'])->name('next-order-id.cashier');
+    Route::get('/make-order', [OrderController::class, 'makeOrder'])->name('make-order.cashier');
+    Route::post('/submit-order', [OrderController::class, 'submitOrder'])->name('submit-order.cashier');
+    Route::get('/fetch-orders', [OrderController::class, 'fetchOrders'])->name('fetch-orders.cashier');
+    Route::get('/fetch-orders-by-date', [OrderController::class, 'fetchOrdersByDate'])->name('fetch-orders-by-date.cashier');
+    Route::get('/fetch-ordered-items-of-order', [OrderController::class, 'getOrderedItemsOfOrder'])->name('fetch-ordered-items-of-order.cashier');
+    Route::get('/add-new-item-to-order', [OrderController::class, 'addNewItemToOrder'])->name('add-new-item-to-order.cashier');
+    Route::get('/update-order-status-complete', [OrderController::class, 'updateOrderToComplete'])->name('update-order-status-complete.cashier');
+    Route::post('/remove-item-to-order', [OrderController::class, 'removeItemQuantity'])->name('remove-item-to-order.cashier');
+
+    //kitchen routes
+    Route::get('/kitchen', [KitchenController::class, 'index'])->name('kitchen.cashier');
+    Route::get('/search-item-name', [MenuController::class, 'searchItemByName'])->name('search-item-name.cashier');
+    Route::get('/fetch-kitchen-orders', [KitchenController::class, 'fetchOrders'])->name('fetch-kitchen-orders.cashier');
+    Route::get('/fetch-ordered-items', [KitchenController::class, 'fetchOrderItems'])->name('fetch-ordered-items.cashier');
+    Route::post('/update-status-preparing', [KitchenController::class, 'updateStatusToPreparing'])->name('update-status-preparing.cashier');
+    Route::post('/update-status-now-serving', [KitchenController::class, 'updateStatusToNowServing'])->name('update-status-now-serving.cashier');
+
+    //payment routes
+    Route::get('/payment', [PaymentController::class, 'index'])->name('payment.cashier');
+    Route::get('/fetch-unpaid-orders', [PaymentController::class, 'fetchUnpaidOrders'])->name('fetch-unpaid-orders.cashier');
+    Route::post('/make-order-paid', [PaymentController::class, 'markOrderAsPaid'])->name('make-order-paid.cashier');
+
+    //sales routes
+    Route::get('/sales', [SalesController::class, 'index'])->name('sales.cashier');
+    Route::get('/fetch-categories', [SalesController::class, 'fetchCategories'])->name('fetch-categories.cashier');
+    Route::get('/fetch-sold-items', [SalesController::class, 'fetchSoldItems'])->name('fetch-sold-items.cashier');
+    Route::get('/get-sales-amount', [SalesController::class, 'getTotalSales'])->name('get-sales-amount.cashier');
+    Route::post('/add-cash', [SalesController::class, 'addCash'])->name('add-cash.cashier');
 });

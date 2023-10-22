@@ -8,13 +8,18 @@ use App\Models\Order;
 use App\Models\Order_Item;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class SalesController extends Controller
 {
     public function index()
     {
-        return view("admin.sales.sales");
+        if (Auth::user()->type === "admin") {
+            return view("admin.sales.sales");
+        } else {
+            return view("cashier.sales.sales");
+        }
     }
 
     public function fetchCategories(Request $request)

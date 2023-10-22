@@ -6,19 +6,22 @@ use App\Models\Order;
 use App\Models\Order_Item;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class KitchenController extends Controller
 {
     public function index() //this function will return the kitchen view
     {
-        // return view('admin.kitchen.kitchen');
-        return view('admin.kitchen.new-kitchen');
+        if (Auth::user()->type === "admin") {
+            return view('admin.kitchen.new-kitchen');
+        } else {
+            return view('cashier.kitchen.new-kitchen');
+        }
     }
 
     public function fetchOrders() //this function will fetch the orders from database
     {
         $orders = Order::whereIn('order_status', ['in queue', 'preparing'])
-            ->orderBy('updated_at')
             ->get(); //retrieve the orders where order_status is 'in queue' & 'preparing'
 
         foreach ($orders as $order) { //for every orders that retrieved
@@ -40,6 +43,21 @@ class KitchenController extends Controller
 
         return response()->json(['order' => $orders]);
     }
+
+    // public function fetchOrders() //this function will fetch the orders from database
+    // {
+    //     $newOrderItems = Order_Item::whereIn('status', ['in queue'])
+    //         ->whereIn('created_at', function ($query) {
+    //             $query->select('created_at')
+    //                 ->from('order_items')
+    //                 ->whereIn('status', ['in queue'])
+    //                 ->groupBy('created_at')
+    //                 ->havingRaw('COUNT(*) > 1');
+    //         })
+    //         ->get();
+
+    //     return response()->json(['order' => $newOrderItems]);
+    // }
 
     public function fetchOrderItems(Request $request)
     {
