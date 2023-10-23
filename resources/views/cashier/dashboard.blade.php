@@ -35,6 +35,10 @@
             <h3 class="m-0 p-2 shadow" style="letter-spacing: 2px;">Dashboard</h3>
         </div>
         <div class="container-fluid m-0 p-3 boxContainer">
+            <div class="container-fluid alert alert-warning p-1 pt-2">
+                <h5><b>Reminder:</b></h5>
+                <p>Please declare the cash if it's not declared. <a href="{{ route('sales.cashier') }}">click here.</a></p>
+            </div>
             <div class="box" style="background-color: #0d0d0d;">
                 <div class="boxTitle">Todays Total Order</div>
                 <hr class="m-0">

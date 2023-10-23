@@ -75,7 +75,6 @@ class OrderController extends Controller
         $cashier_id = auth()->user()->id; //store the id of the cashier 
 
         $logController = new LogController(); //initialize log controller
-
         list($user_id, $user_type) = $logController->startLog();
 
         $order = new Order(); //initialize the orders table
@@ -88,7 +87,6 @@ class OrderController extends Controller
         $order->order_status = 'in queue'; //set the order_status to 'in queue'
         $order->created_at = Carbon::now();
         $order->updated_at = Carbon::now();
-        // $order->created_at = now();
 
         if ($order->save()) { //if the order is true means it successfully stored to database
             $activity = "Created new order. ORDER ID [" . $order_id . "]."; //store the activity message
@@ -106,6 +104,12 @@ class OrderController extends Controller
                 if ($orderItem->save()) { //if the item is saved
                     $itemStock = Item_Stock::join('menu_items', 'item_stocks.menu_item_id', '=', 'menu_items.item_id')->where('item_stocks.menu_item_id', $item['id'])->first();
                     $newStockQuantity = $itemStock->quantity - $item['quantity'];
+
+                    if ($newStockQuantity < 1) {
+                        $stock = new StockController();
+                        $stock->deleteZeroItemStock($item['id']);
+                    }
+
                     $itemStock->quantity = $newStockQuantity;
                     if ($itemStock->save()) {
                         $activity = $itemStock->name . " / " . $itemStock->category . " stock quantity is deducted [" . $item['quantity'] . "]. New item stock [" . $newStockQuantity . "]";
@@ -228,7 +232,6 @@ class OrderController extends Controller
     public function addNewItemToOrder(Request $request)
     {
         $log = new LogController();
-
         list($user_id, $user_type) = $log->startLog();
 
         $order_id = $request->input('order_id');
@@ -251,6 +254,24 @@ class OrderController extends Controller
                     ->first();
 
                 $thisItem = Order_Item::where('order_id', $order_id)->where('menu_item_id', $item['item_id'])->first();
+                $itemStockExist = Item_Stock::join("menu_items", "item_stocks.menu_item_id", "=", "menu_items.item_id")->where('menu_item_id', $item['item_id'])->first();
+
+                if ($itemStockExist) {
+                    $currentQuantity = $itemStockExist->quantity;
+                    $newQuantity = $currentQuantity - $item['quantity'];
+
+                    if ($newQuantity < 1) {
+                        $stock = new StockController();
+                        $stock->deleteZeroItemStock($item['item_id']);
+                    }
+
+                    $itemStockExist->quantity = $newQuantity;
+
+                    if ($itemStockExist->save()) {
+                        $activity = $itemStockExist->name . " / " . $itemStockExist->category . " stock quantity is deducted [" . $item['quantity'] . "]. New item stock [" . $newQuantity . "]";
+                        $log->endLog($user_id, $user_type, $activity);
+                    }
+                }
 
                 if ($thisItem) {
                     if ($thisItem->status == 'in queue') {

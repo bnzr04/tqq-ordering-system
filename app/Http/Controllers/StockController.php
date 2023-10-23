@@ -49,6 +49,7 @@ class StockController extends Controller
 
         if ($itemExist) {
             $itemExist->delete();
+            return true;
         }
     }
 

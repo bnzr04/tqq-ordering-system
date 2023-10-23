@@ -46,7 +46,6 @@
         display: flex;
         align-items: center;
         letter-spacing: 2px;
-        justify-content: space-between;
         cursor: default;
         font-size: 13px;
     }

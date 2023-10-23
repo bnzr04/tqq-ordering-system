@@ -46,7 +46,6 @@
         display: flex;
         align-items: center;
         letter-spacing: 2px;
-        justify-content: space-between;
         cursor: default;
         font-size: 13px;
     }
@@ -874,8 +873,8 @@
                     if (data.length > 0) {
                         data.forEach(function(row) {
 
-                            if (row.stock_qty == null) {
-                                row.stock_qty = 0;
+                            if (row.quantity == null) {
+                                row.quantity = 0;
                             }
 
                             var modalOrderBox = $('<div class="container-fluid border-bottom border-secondary py-1 p-0 modal_order_box" id="modal_order_box"></div>');
