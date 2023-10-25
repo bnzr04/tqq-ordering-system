@@ -27,6 +27,7 @@
 
     li>a:hover {
         background-color: gray;
+        color: #fff;
     }
 </style>
 <aside class="sidebar navbar-dark">

@@ -18,7 +18,7 @@ return new class extends Migration
             $table->integer('user_id');
             $table->string('user_type');
             $table->string('activity');
-            $table->string('query');
+            $table->text('query');
             $table->timestamps();
         });
     }

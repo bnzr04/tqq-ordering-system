@@ -734,11 +734,12 @@
                                 // if (item.status === 'serving') {
                                 //     var button = '<button class="mx-1 done_button" data-item-order-id="' + item.order_item_id + '" >Done</button>';
                                 // }
-                                //  else if (item.status === 'in queue' && data.payment_status !== "paid") {
-                                //     var button = '<button class="mx-1 remove_item" data-order-id="' + item.order_id + '" data-item-name="' + item.name + '" data-item-category="' + item.category + '" data-item-price="' + item.price + '" data-item-order-id="' + item.order_item_id + '" data-item-quantity="' + item.quantity + '" data-bs-toggle="modal" data-bs-target="#remove_item_modal">Remove</button>';
-                                // }
+                                // else 
+                                if (item.status === 'in queue' && data.payment_status !== "paid") {
+                                    var button = '<button class="mx-1 remove_item" data-order-id="' + item.order_id + '" data-item-name="' + item.name + '" data-item-category="' + item.category + '" data-item-price="' + item.price + '" data-item-order-id="' + item.order_item_id + '" data-item-quantity="' + item.quantity + '" data-bs-toggle="modal" data-bs-target="#remove_item_modal">Remove</button>';
+                                }
 
-                                // row.find('.status_container').append(button);
+                                row.find('.status_container').append(button);
                             });
                         }
                     })
@@ -844,6 +845,7 @@
                     },
                     success: function(data) {
                         if (data.in_queue_status == true) {
+                            alert("Item order quantity is successfully updated.");
                             window.location.reload();
                         } else {
                             alert('Item failed to cancel, \nmaybe the item is either preparing or serving.');

@@ -106,6 +106,7 @@ Route::prefix('admin')->middleware(['auth', 'user-access:admin'])->group(functio
     Route::get('/fetch-sold-items', [SalesController::class, 'fetchSoldItems'])->name('fetch-sold-items.admin');
     Route::get('/get-sales-amount', [SalesController::class, 'getTotalSales'])->name('get-sales-amount.admin');
     Route::post('/add-cash', [SalesController::class, 'addCash'])->name('add-cash.admin');
+    Route::post('/generate-sales-report', [ReportController::class, 'salesReportExport'])->name('generate-sales-report.admin');
 
     //logs routes
     Route::get('/logs', [LogController::class, 'index'])->name('logs.admin');
@@ -165,4 +166,5 @@ Route::prefix('cashier')->middleware(['auth', 'user-access:cashier'])->group(fun
     Route::get('/fetch-sold-items', [SalesController::class, 'fetchSoldItems'])->name('fetch-sold-items.cashier');
     Route::get('/get-sales-amount', [SalesController::class, 'getTotalSales'])->name('get-sales-amount.cashier');
     Route::post('/add-cash', [SalesController::class, 'addCash'])->name('add-cash.cashier');
+    Route::post('/generate-sales-report', [ReportController::class, 'salesReportExport'])->name('generate-sales-report.cashier');
 });

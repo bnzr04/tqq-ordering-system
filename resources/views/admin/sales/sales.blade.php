@@ -63,9 +63,14 @@
                 </div>
             </div>
 
-            <div class="container-fluid d-flex m-0 my-1 p-1 bg-secondary rounded-1 text-white" style="letter-spacing: 3px;font-size:18px;justify-content:center;">
-                <div class="p-1">
+            <div class="container-fluidm-0 my-1 p-1 bg-secondary rounded-1 text-white" style="letter-spacing: 3px;font-size:18px;">
+                <div class="p-1 d-flex" style="flex-direction: row;align-items:center;justify-content:space-between">
                     <p class="m-0">Date: <span id='sales_date_display'></span> <span id="day_identifier"></span> <span id="order_type_identifier"></span></p>
+                    <form action="{{ route('generate-sales-report.admin') }}" method="post" class="d-flex gap-1">
+                        @csrf
+                        <input type="date" name="date" id="salesDateInput" class="form-control">
+                        <button class="p-1 rounded-1" style="letter-spacing: 2px;font-size:15px;" id="printSalesButton">PRINT</button>
+                    </form>
                 </div>
             </div>
 
